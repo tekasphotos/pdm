@@ -49,12 +49,14 @@ function LoginForm() {
       })
 
       if (res?.error) {
+        console.error("[NEXTAUTH] credentials error:", res.error)
         setError("E-mail ou senha incorretos")
       } else {
         const data = await fetch("/api/user/pagina-inicial").then((r: any) => r.json())
         router.push(data?.paginaInicial || "/dashboard")
       }
     } catch (err) {
+      console.error("[NEXTAUTH] credentials exception:", err)
       setError("Ocorreu um erro ao fazer login")
     } finally {
       setIsLoading(false)
