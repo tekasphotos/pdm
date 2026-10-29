@@ -12,17 +12,17 @@ import {
 } from "lucide-react"
 
 const TEKAS_TOOLTIP =
-  "TEKAS — estúdio de fotografia para a indústria têxtil. Registramos cada coleção, cada fio e cada detalhe com a precisão que sua marca merece."
+  "TEKAS — estúdio de fotografia. Imagens reais para sua marca, sem maquiagem."
 
 const SUBTITLE_TOOLTIP =
-  "Cada imagem conta a verdade do produto. Sem maquiagem, sem artifício: só o tecido, a cor e a textura como são de verdade."
+  "Cada imagem conta a verdade do produto. Sem artifícios."
 
 const DEPARTMENT_TOOLTIPS: Record<string, string> = {
-  PCP: "Planejamento de ensaios: cronograma de fotos por coleção, prazos de entrega e estoque de amostras.",
-  COM: "Catálogo fotográfico para vendas: imagens prontas para WhatsApp, loja e equipe comercial.",
-  CRM: "Portfólio por cliente: histórico de ensaios, aprovações e visitas registradas em imagem.",
-  ADM: "Gestão do estúdio: usuários, permissões de acesso e configurações dos ensaios.",
-  FER: "Ferramentas do fotógrafo: presets, conversores, medidas e utilitários para o dia a dia do estúdio.",
+  PCP: "Planejamento de ensaios fotográficos: cronograma e prazos de entrega.",
+  COM: "Catálogo de imagens para vendas: fotos prontas para WhatsApp e loja.",
+  CRM: "Portfólio por cliente: histórico de ensaios e aprovações.",
+  ADM: "Gestão do estúdio: usuários, permissões e configurações.",
+  FER: "Utilitários para fotógrafos: presets, conversores e medidas.",
 }
 
 const DEPARTMENTS = [
