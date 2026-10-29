@@ -238,9 +238,25 @@ export default function LandingPage() {
                 </div>
               )}
             </div>
-            <p className="mb-8 inline-block rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-2 text-xl font-light text-slate-400">
-              TEKAS — ferramentas administrativas, comerciais e marketing
-            </p>
+            <div
+              className="relative mb-8 inline-block"
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+            >
+              <p className="rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-2 text-xl font-light text-slate-400 cursor-default">
+                Não inventamos momentos. Eternizamos os reais.
+              </p>
+              {showTooltip && (
+                <div
+                  ref={tooltipRef}
+                  className={`absolute left-1/2 -translate-x-1/2 whitespace-pre-wrap rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-3 text-sm text-white max-w-md ${
+                    tooltipAbove ? "bottom-full mb-3" : "top-full mt-3"
+                  }`}
+                >
+                  {PDM_TOOLTIP}
+                </div>
+              )}
+            </div>
 
             <div className="mb-12 flex items-center justify-center gap-3 sm:flex-row">
               <Link

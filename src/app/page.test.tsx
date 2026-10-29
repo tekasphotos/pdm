@@ -21,7 +21,7 @@ describe("LandingPage", () => {
     render(<LandingPage />)
     expect(screen.getByRole("heading", { name: "TEKAS" })).toBeInTheDocument()
     expect(
-      screen.getByText(/TEKAS — ferramentas administrativas, comerciais e marketing/i)
+      screen.getByText(/Não inventamos momentos. Eternizamos os reais./i)
     ).toBeInTheDocument()
   })
 
