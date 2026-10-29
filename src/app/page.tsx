@@ -6,14 +6,13 @@ import {
   ArrowRight,
   Factory,
   Settings,
-  PenTool,
   ShoppingCart,
   Users,
   Wrench,
 } from "lucide-react"
 
 const PDM_TOOLTIP =
-  "PDM·PRO·TÊXTIL — Ferramenta de integração para a indústria têxtil. Conecta ferramentas legadas (ERP, planilhas e sistemas legados) às tecnologias atuais por APIs e integrações, com foco no desenvolvimento de produtos — que precisa ser gerenciado — e módulos satélites, com visualizações em Kanban e painéis. A parte de vendas é o CRM — o PDM não substitui o ERP comercial."
+  "TEKAS — Ferramenta de integração para a indústria têxtil. Conecta ferramentas legadas (ERP, planilhas e sistemas legados) às tecnologias atuais por APIs e integrações, com foco no desenvolvimento de produtos — que precisa ser gerenciado — e módulos satélites, com visualizações em Kanban e painéis. A parte de vendas é o CRM — o PDM não substitui o ERP comercial."
 
 const DEPARTMENTS = [
   {
@@ -33,12 +32,6 @@ const DEPARTMENTS = [
     abbr: "CRM",
     label: "CRM",
     phrase: "Relacionamento, propostas e visitas que geram novas demandas",
-  },
-  {
-    icon: PenTool,
-    abbr: "DES",
-    label: "Desenvolvimento",
-    phrase: "O coração do PDM: fichas técnicas, receitas e amostras antes do pedido",
   },
   {
     icon: Settings,
@@ -207,7 +200,7 @@ export default function LandingPage() {
 
       <div className="relative z-10 flex min-h-screen flex-col">
         <header className="flex items-center justify-between px-6 py-6 md:px-8">
-          <div className="text-xl font-bold tracking-wide text-white">PDM·PRO·TÊXTIL</div>
+          <div className="text-xl font-bold tracking-wide text-white">TEKAS</div>
           <nav className="flex items-center gap-3">
             <Link
               href="/sobre"
@@ -232,7 +225,7 @@ export default function LandingPage() {
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
               >
-                PDM·PRO·TÊXTIL
+                TEKAS
               </h1>
               {showTooltip && (
                 <div
@@ -246,22 +239,15 @@ export default function LandingPage() {
               )}
             </div>
             <p className="mb-8 inline-block rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-2 text-xl font-light text-slate-400">
-              Integração entre as ferramentas que você já usa e as tecnologias atuais
+              TEKAS — ferramentas administrativas, comerciais e marketing
             </p>
 
-            <div className="mb-12 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mb-12 flex items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/login"
                 className="inline-flex items-center gap-2 rounded-lg bg-white px-8 py-4 font-medium text-black transition-colors hover:bg-slate-200"
               >
                 Acessar Sistema
-                <ArrowRight size={18} />
-              </Link>
-              <Link
-                href="/sobre"
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-600 px-8 py-4 font-medium text-white transition-colors hover:border-slate-400 hover:bg-slate-900/50"
-              >
-                Sobre o PDM
                 <ArrowRight size={18} />
               </Link>
             </div>
@@ -286,7 +272,7 @@ export default function LandingPage() {
 
         <footer className="border-t border-slate-900 px-6 py-6 text-center md:px-8">
           <p className="text-xs text-slate-600">
-            © 2026 PDM·PRO·TÊXTIL | @devtiagoabreu · Todos os direitos reservados
+            © 2026 TEKAS | @devtiagoabreu · Todos os direitos reservados
           </p>
         </footer>
       </div>

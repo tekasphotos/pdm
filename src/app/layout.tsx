@@ -4,8 +4,8 @@ import "leaflet/dist/leaflet.css"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
-  title: "PDM Pro Moda",
-  description: "Sistema de gestão de desenvolvimento de produtos têxteis",
+  title: "TEKAS",
+  description: "TEKAS — integração de ferramentas têxteis com tecnologias atuais",
 }
 
 import { Providers } from "@/components/providers"

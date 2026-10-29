@@ -19,9 +19,9 @@ describe("LandingPage", () => {
 
   it("mostra o título e a proposta de integração", () => {
     render(<LandingPage />)
-    expect(screen.getByRole("heading", { name: "PDM·PRO·TÊXTIL" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "TEKAS" })).toBeInTheDocument()
     expect(
-      screen.getByText(/integração entre as ferramentas que você já usa e as tecnologias atuais/i)
+      screen.getByText(/TEKAS — ferramentas administrativas, comerciais e marketing/i)
     ).toBeInTheDocument()
   })
 
