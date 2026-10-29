@@ -11,46 +11,57 @@ import {
   Wrench,
 } from "lucide-react"
 
-const PDM_TOOLTIP =
-  "TEKAS — Ferramenta de integração para a indústria têxtil. Conecta ferramentas legadas (ERP, planilhas e sistemas legados) às tecnologias atuais por APIs e integrações, com foco no desenvolvimento de produtos — que precisa ser gerenciado — e módulos satélites, com visualizações em Kanban e painéis. A parte de vendas é o CRM — o PDM não substitui o ERP comercial."
+const TEKAS_TOOLTIP =
+  "TEKAS — estúdio de fotografia para a indústria têxtil. Registramos cada coleção, cada fio e cada detalhe com a precisão que sua marca merece."
+
+const SUBTITLE_TOOLTIP =
+  "Cada imagem conta a verdade do produto. Sem maquiagem, sem artifício: só o tecido, a cor e a textura como são de verdade."
+
+const DEPARTMENT_TOOLTIPS: Record<string, string> = {
+  PCP: "Planejamento de ensaios: cronograma de fotos por coleção, prazos de entrega e estoque de amostras.",
+  COM: "Catálogo fotográfico para vendas: imagens prontas para WhatsApp, loja e equipe comercial.",
+  CRM: "Portfólio por cliente: histórico de ensaios, aprovações e visitas registradas em imagem.",
+  ADM: "Gestão do estúdio: usuários, permissões de acesso e configurações dos ensaios.",
+  FER: "Ferramentas do fotógrafo: presets, conversores, medidas e utilitários para o dia a dia do estúdio.",
+}
 
 const DEPARTMENTS = [
   {
     icon: Factory,
     abbr: "PCP",
     label: "Planejamento",
-    phrase: "Acompanhe a produção do produto em desenvolvimento, do cru ao acabado",
+    phrase: "Planejamento de ensaios por coleção",
   },
   {
     icon: ShoppingCart,
     abbr: "COM",
     label: "Comercial",
-    phrase: "Recebe as solicitações de desenvolvimento e organiza clientes e pedidos",
+    phrase: "Catálogo fotográfico para vendas",
   },
   {
     icon: Users,
     abbr: "CRM",
     label: "CRM",
-    phrase: "Relacionamento, propostas e visitas que geram novas demandas",
+    phrase: "Portfólio e histórico por cliente",
   },
   {
     icon: Settings,
     abbr: "ADM",
     label: "Admin",
-    phrase: "Usuários, permissões, menus e configurações centralizadas",
+    phrase: "Gestão do estúdio de fotografia",
   },
   {
     icon: Wrench,
     abbr: "FER",
     label: "Ferramentas",
-    phrase: "Ferramentas personalizadas para cada tipo de negócio",
+    phrase: "Utilitários do fotógrafo",
   },
 ]
 
 export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
-  const [showTooltip, setShowTooltip] = useState(false)
+  const [tooltipContent, setTooltipContent] = useState<string | null>(null)
   const [tooltipAbove, setTooltipAbove] = useState(true)
 
   const checkPosition = useCallback(() => {
@@ -191,8 +202,8 @@ export default function LandingPage() {
   }, [])
 
   useEffect(() => {
-    if (showTooltip) setTimeout(checkPosition, 50)
-  }, [showTooltip, checkPosition])
+    if (tooltipContent) setTimeout(checkPosition, 50)
+  }, [tooltipContent, checkPosition])
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0a0a0f]">
@@ -222,38 +233,38 @@ export default function LandingPage() {
             <div className="relative mb-4 inline-block">
               <h1
                 className="cursor-default text-5xl font-bold tracking-tight text-white md:text-7xl"
-                onMouseEnter={() => setShowTooltip(true)}
-                onMouseLeave={() => setShowTooltip(false)}
+                onMouseEnter={() => setTooltipContent(TEKAS_TOOLTIP)}
+                onMouseLeave={() => setTooltipContent(null)}
               >
                 TEKAS
               </h1>
-              {showTooltip && (
+              {tooltipContent && (
                 <div
                   ref={tooltipRef}
                   className={`absolute left-1/2 -translate-x-1/2 whitespace-pre-wrap rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-3 text-sm text-white max-w-md ${
                     tooltipAbove ? "bottom-full mb-3" : "top-full mt-3"
                   }`}
                 >
-                  {PDM_TOOLTIP}
+                  {tooltipContent}
                 </div>
               )}
             </div>
             <div
               className="relative mb-8 inline-block"
-              onMouseEnter={() => setShowTooltip(true)}
-              onMouseLeave={() => setShowTooltip(false)}
+              onMouseEnter={() => setTooltipContent(SUBTITLE_TOOLTIP)}
+              onMouseLeave={() => setTooltipContent(null)}
             >
               <p className="rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-2 text-xl font-light text-slate-400 cursor-default">
                 Não inventamos momentos. Eternizamos os reais.
               </p>
-              {showTooltip && (
+              {tooltipContent && (
                 <div
                   ref={tooltipRef}
                   className={`absolute left-1/2 -translate-x-1/2 whitespace-pre-wrap rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-3 text-sm text-white max-w-md ${
                     tooltipAbove ? "bottom-full mb-3" : "top-full mt-3"
                   }`}
                 >
-                  {PDM_TOOLTIP}
+                  {tooltipContent}
                 </div>
               )}
             </div>
