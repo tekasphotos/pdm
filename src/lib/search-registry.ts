@@ -993,11 +993,11 @@ export const searchRegistry: SearchItem[] = [
       "catalogos",
       "mostruario",
       "linhas",
-      "tecidos",
+      "produtos",
       "links",
     ],
     href: "/admin/whatsapp-catalogos",
-    description: "Gerenciar links de catalogo por linha de tecidos",
+    description: "Gerenciar links de catalogo por linha de produtos",
     module: "Admin",
   },
   {

@@ -280,7 +280,7 @@ export default function WhatsAppCatalogosPage() {
           <h2 className="font-semibold">{editId ? "Editar Catalogo" : "Novo Catalogo"}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Linha de Tecido *</Label>
+              <Label>Linha de Produto *</Label>
               <select
                 value={linhaNumero}
                 onChange={(e) => setLinhaNumero(Number(e.target.value))}
@@ -349,7 +349,7 @@ export default function WhatsAppCatalogosPage() {
         >
           <Layers className="text-purple-600" size={18} />
           <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
-            Gerenciar Linhas de Tecido
+            Gerenciar Linhas de Produtos
           </span>
           <span className="text-xs text-slate-400 ml-1">({linhas.length})</span>
           <span className="ml-auto">
@@ -558,7 +558,7 @@ export default function WhatsAppCatalogosPage() {
           })}
           {linhas.length === 0 && !loading && (
             <div className="text-center py-8 text-slate-400 text-sm">
-              Cadastre linhas de tecido acima para poder adicionar catalogos.
+              Cadastre linhas de produtos acima para poder adicionar catalogos.
             </div>
           )}
         </div>
