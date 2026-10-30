@@ -146,7 +146,7 @@ export default function CrmDashboardPage() {
       ) : (
         <>
           {/* Linha 1: Cards de resumo */}
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <SummaryCard
               href="/comercial/crm/leads"
               icon={<UserPlus size={20} />}
@@ -404,18 +404,24 @@ function SummaryCard({
   return (
     <Link
       href={href}
-      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 hover:shadow-md transition-shadow"
+      className="flex min-w-0 flex-col rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 hover:shadow-md transition-shadow"
     >
-      <div className="flex items-center gap-3">
-        <div className={`rounded-lg ${bgColor} p-2.5`}>
+      <div className="flex min-w-0 items-center gap-3">
+        <div className={`shrink-0 rounded-lg ${bgColor} p-2.5`}>
           <span className={iconColor}>{icon}</span>
         </div>
-        <div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-slate-50">{value}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-2xl font-bold tabular-nums text-slate-900 dark:text-slate-50">
+            {value}
+          </p>
+          <p className="text-xs leading-tight break-words text-slate-500 dark:text-slate-400">
+            {label}
+          </p>
         </div>
       </div>
-      {sub && <p className="text-[10px] text-slate-400 mt-1.5">{sub}</p>}
+      {sub && (
+        <p className="text-[10px] leading-tight break-words text-slate-400 mt-1.5">{sub}</p>
+      )}
     </Link>
   )
 }

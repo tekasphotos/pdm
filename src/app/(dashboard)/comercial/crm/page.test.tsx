@@ -39,4 +39,22 @@ describe("CrmPage", () => {
     await waitFor(() => expect(screen.getByText("Leads")).toBeInTheDocument())
     expect(screen.getByText("4")).toBeInTheDocument()
   })
+
+  it("não deixa o texto dos cards vazar (grid responsivo e min-w-0)", async () => {
+    const fetchMock = createFetchMock(routeJson({ "/api/crm/dashboard": dashboard }))
+    vi.stubGlobal("fetch", fetchMock.fn)
+    renderPage(<CrmPage />)
+
+    const card = (await screen.findByText("Leads")).closest("a") as HTMLElement
+    expect(card.className).toContain("min-w-0")
+    expect(card.className).toContain("flex-col")
+
+    const grid = card.parentElement as HTMLElement
+    expect(grid.className).toContain("grid-cols-2")
+    expect(grid.className).toContain("md:grid-cols-4")
+    expect(grid.className).not.toContain("xl:grid-cols-8")
+
+    const label = screen.getByText("Tarefas Pendentes")
+    expect(label.className).toContain("break-words")
+  })
 })
