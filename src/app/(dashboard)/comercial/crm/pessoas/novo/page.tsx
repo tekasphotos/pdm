@@ -37,6 +37,9 @@ export default function NovaPessoaPage() {
   const [consulting, setConsulting] = useState(false)
   const [consulted, setConsulted] = useState(false)
   const [apiData, setApiData] = useState<ConsultaCnpjData | null>(null)
+  const [cpfConsulting, setCpfConsulting] = useState(false)
+  const [cpfConsulted, setCpfConsulted] = useState(false)
+  const [cpfApiData, setCpfApiData] = useState<any | null>(null)
   const [form, setForm] = useState<PessoaForm>({
     tipoPessoa: "PJ",
     nome: "",
@@ -141,6 +144,12 @@ export default function NovaPessoaPage() {
     return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`
   }
 
+  function formatCpf(v: string) {
+    const d = v.replace(/\D/g, "")
+    if (d.length !== 11) return v
+    return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`
+  }
+
   async function handleConsultarCnpj() {
     const digits = (form.cnpj || "").replace(/\D/g, "")
     if (digits.length !== 14) {
@@ -190,6 +199,53 @@ export default function NovaPessoaPage() {
       toast.error(err instanceof Error ? err.message : "Erro ao consultar CNPJ")
     } finally {
       setConsulting(false)
+    }
+  }
+
+  async function handleConsultarCpf() {
+    const digits = (form.cpf || "").replace(/\D/g, "")
+    if (digits.length !== 11) {
+      toast.error("CPF deve ter 11 dígitos")
+      return
+    }
+    setCpfConsulting(true)
+    setCpfConsulted(false)
+    setCpfApiData(null)
+    try {
+      const res = await fetch(`/api/crm/consulta-cpf?cpf=${digits}`)
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Erro na consulta")
+      }
+      const result = await res.json()
+      const api = result.apiData
+      if (!api) {
+        setCpfConsulted(true)
+        toast.error("CPF não encontrado")
+        return
+      }
+      setCpfApiData(api)
+      setCpfConsulted(true)
+      setForm((prev) => ({
+        ...prev,
+        cpf: formatCpf(digits),
+        nome: api.nome || prev.nome,
+        endereco: api.endereco?.logradouro || prev.endereco,
+        numero: api.endereco?.numero || prev.numero,
+        complemento: api.endereco?.complemento || prev.complemento,
+        bairro: api.endereco?.bairro || prev.bairro,
+        cidade: api.endereco?.cidade || prev.cidade,
+        uf: api.endereco?.uf || prev.uf,
+        cep: api.endereco?.cep ? formatCep(api.endereco.cep) : prev.cep,
+        telefone:
+          prev.telefone ||
+          (api.endereco?.ddd ? `${api.endereco.ddd}${api.endereco.numero}` : ""),
+      }))
+      toast.success("Dados preenchidos automaticamente")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao consultar CPF")
+    } finally {
+      setCpfConsulting(false)
     }
   }
 
@@ -306,14 +362,54 @@ export default function NovaPessoaPage() {
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   CPF
                 </label>
-                <input
-                  type="text"
-                  value={form.cpf || ""}
-                  onChange={(e) => setField("cpf", e.target.value)}
-                  placeholder="000.000.000-00"
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={form.cpf || ""}
+                    onChange={(e) => setField("cpf", e.target.value)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && (e.preventDefault(), handleConsultarCpf())
+                    }
+                    placeholder="000.000.000-00"
+                    className="flex-1 min-w-0 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleConsultarCpf}
+                    disabled={cpfConsulting}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/50 dark:hover:bg-purple-950/80 border border-purple-200 dark:border-purple-800 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {cpfConsulting ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Search size={14} />
+                    )}
+                    <span className="hidden sm:inline">Consultar</span>
+                  </button>
+                </div>
               </div>
+
+              {tipoPessoa === "PF" && cpfConsulted && !cpfApiData && (
+                <div className="sm:col-span-2 rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-3 flex items-start gap-2">
+                  <AlertCircle size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    CPF não encontrado. Preencha os dados manualmente.
+                  </p>
+                </div>
+              )}
+              {tipoPessoa === "PF" && cpfApiData && (
+                <div className="sm:col-span-2 rounded-lg border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/30 p-3 flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-medium text-emerald-800 dark:text-emerald-300">
+                      {cpfApiData.nome}
+                    </p>
+                    <p className="text-emerald-600 dark:text-emerald-400 text-xs mt-0.5">
+                      {cpfApiData.situacao_cadastral || "Regular"}
+                    </p>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -538,7 +634,7 @@ export default function NovaPessoaPage() {
             </label>
             <input
               type="text"
-              value={formatCep(form.cep)}
+              value={formatCep(form.cep || "")}
               onChange={(e) => handleCepChange(e.target.value)}
               onBlur={(e) => handleCepBlur(e.target.value)}
               placeholder="00.000-000"

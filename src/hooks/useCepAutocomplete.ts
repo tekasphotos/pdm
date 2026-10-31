@@ -16,10 +16,14 @@ export interface CepData {
   erro?: boolean
 }
 
-export function useCepAutocomplete(
-  form: Record<string, any>,
-  setField: (field: string, value: string) => void
+export function useCepAutocomplete<
+  T extends Record<string, any>,
+  K extends string
+>(
+  form: T,
+  setField: (field: K, value: string) => void
 ) {
+  const setFieldAny = setField as (field: string, value: string) => void
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -42,12 +46,12 @@ export function useCepAutocomplete(
           return
         }
 
-        setField("endereco", data.logradouro || "")
-        setField("bairro", data.bairro || "")
-        setField("cidade", data.localidade || "")
-        setField("uf", data.uf || "")
+        setFieldAny("endereco", data.logradouro || "")
+        setFieldAny("bairro", data.bairro || "")
+        setFieldAny("cidade", data.localidade || "")
+        setFieldAny("uf", data.uf || "")
         if (data.complemento) {
-          setField("complemento", data.complemento)
+          setFieldAny("complemento", data.complemento)
         }
       } catch {
         setError("Erro ao consultar CEP")
@@ -60,13 +64,13 @@ export function useCepAutocomplete(
 
   const handleCepChange = useCallback(
     (value: string) => {
-      setField("cep", value)
+      setFieldAny("cep", value)
       const cleanCep = value.replace(/\D/g, "")
       if (cleanCep.length === 8) {
         fetchCep(cleanCep)
       }
     },
-    [setField, fetchCep]
+    [setFieldAny, fetchCep]
   )
 
   const handleCepBlur = useCallback(

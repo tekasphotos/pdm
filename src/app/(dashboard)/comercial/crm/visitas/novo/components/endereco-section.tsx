@@ -20,7 +20,7 @@ export function EnderecoSection({
   onCopiarEndereco,
 }: EnderecoSectionProps) {
   const { loading: cepLoading, error: cepError, handleCepChange, handleCepBlur } =
-    useCepAutocomplete(form, setField)
+    useCepAutocomplete(form, setField as (field: string, value: string) => void)
 
   const handleCopiarEndereco = () => {
     const entidadeId = tipoEntidade === "PESSOA" ? form.empresaId : form.clienteId

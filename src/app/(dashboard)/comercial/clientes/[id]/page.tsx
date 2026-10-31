@@ -257,7 +257,7 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
   }
 
   const { loading: cepLoading, error: cepError, handleCepChange, handleCepBlur } =
-    useCepAutocomplete(cliente || {}, handleChange)
+    useCepAutocomplete(cliente || {}, handleChange as (field: string, value: string) => void)
 
   const handleCheckboxChange = (field: keyof Cliente, checked: boolean) => {
     setCliente((prev) => (prev ? { ...prev, [field]: checked } : null))

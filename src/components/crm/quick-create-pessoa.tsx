@@ -45,6 +45,24 @@ type ConsultaCnpjData = {
   situacao_cadastral?: string
 }
 
+type ConsultaCpfData = {
+  nome?: string
+  cpf?: string
+  data_nascimento?: string
+  nome_mae?: string
+  sexo?: string
+  situacao_cadastral?: string
+  endereco?: {
+    logradouro?: string
+    numero?: string
+    complemento?: string
+    bairro?: string
+    cidade?: string
+    uf?: string
+    cep?: string
+  }
+}
+
 export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: Props) {
   const [internalOpen, setInternalOpen] = useState(false)
   const open = openProp ?? internalOpen
@@ -114,6 +132,10 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
   const [consulted, setConsulted] = useState(false)
   const [apiData, setApiData] = useState<ConsultaCnpjData | null>(null)
 
+  const [cpfConsulting, setCpfConsulting] = useState(false)
+  const [cpfConsulted, setCpfConsulted] = useState(false)
+  const [cpfApiData, setCpfApiData] = useState<ConsultaCpfData | null>(null)
+
   const { data: estados } = useQuery<{ id: number; uf: string }[]>({
     queryKey: ["crm-estados"],
     queryFn: async () => {
@@ -149,6 +171,8 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
     setCep("")
     setApiData(null)
     setConsulted(false)
+    setCpfApiData(null)
+    setCpfConsulted(false)
   }
 
   async function handleConsultarCnpj() {
@@ -195,6 +219,52 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
       toast.error(err instanceof Error ? err.message : "Erro na consulta")
     } finally {
       setConsulting(false)
+    }
+  }
+
+  function formatCpf(v: string) {
+    const d = v.replace(/\D/g, "")
+    if (d.length !== 11) return v
+    return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`
+  }
+
+  async function handleConsultarCpf() {
+    const digits = cpf.replace(/\D/g, "")
+    if (digits.length !== 11) {
+      toast.error("CPF deve ter 11 dígitos")
+      return
+    }
+    setCpfConsulting(true)
+    setCpfApiData(null)
+    setCpfConsulted(false)
+    try {
+      const res = await fetch(`/api/crm/consulta-cpf?cpf=${digits}`)
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Erro na consulta")
+      }
+      const result = await res.json()
+      const api = result.apiData
+      if (!api) {
+        setCpfConsulted(true)
+        toast.error("CPF não encontrado")
+        return
+      }
+      setCpfApiData(api)
+      setCpfConsulted(true)
+      setNomePF(api.nome || "")
+      setEndereco(api.endereco?.logradouro || "")
+      setNumero(api.endereco?.numero || "")
+      setComplemento(api.endereco?.complemento || "")
+      setBairro(api.endereco?.bairro || "")
+      setCidade(api.endereco?.cidade || "")
+      setUf(api.endereco?.uf || "")
+      setCep(api.endereco?.cep || "")
+      toast.success("Dados preenchidos automaticamente")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro na consulta")
+    } finally {
+      setCpfConsulting(false)
     }
   }
 
@@ -404,18 +474,59 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    CPF
-                  </label>
+<div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  CPF
+                </label>
+                <div className="flex gap-2">
                   <input
                     type="text"
                     value={cpf}
                     onChange={(e) => setCpf(e.target.value)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && (e.preventDefault(), handleConsultarCpf())
+                    }
+                    className="flex-1 min-w-0 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                     placeholder="000.000.000-00"
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  <button
+                    type="button"
+                    onClick={handleConsultarCpf}
+                    disabled={cpfConsulting}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/50 dark:hover:bg-purple-950/80 border border-purple-200 dark:border-purple-800 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {cpfConsulting ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Search size={14} />
+                    )}
+                    <span className="hidden sm:inline">Consultar</span>
+                  </button>
                 </div>
+              </div>
+
+              {cpfConsulted && !cpfApiData && (
+                <div className="rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-3 flex items-start gap-2">
+                  <AlertCircle size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    CPF {formatCpf(cpf)} não encontrado. Preencha os dados manualmente.
+                  </p>
+                </div>
+              )}
+
+              {cpfApiData && (
+                <div className="rounded-lg border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/30 p-3 flex items-start gap-2">
+                  <Check size={16} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-medium text-emerald-800 dark:text-emerald-300">
+                      {cpfApiData.nome}
+                    </p>
+                    <p className="text-emerald-600 dark:text-emerald-400 text-xs mt-0.5">
+                      {cpfApiData.situacao_cadastral || "Regular"}
+                    </p>
+                  </div>
+                </div>
+              )}
               </div>
             </>
           )}
