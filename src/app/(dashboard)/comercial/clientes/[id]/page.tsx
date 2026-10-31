@@ -258,12 +258,16 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
     setCliente((prev) => (prev ? { ...prev, [field]: value } : null))
   }
 
+  const [cepConsulting, setCepConsulting] = useState(false)
+  const [cepConsulted, setCepConsulted] = useState(false)
+  const [cepData, setCepData] = useState<any | null>(null)
+
   const {
     formatCep,
-    cepConsulting,
-    cepConsulted,
+    cepConsulting: cepAutoConsulting,
+    cepConsulted: cepAutoConsulted,
     cepError,
-    cepData,
+    cepData: cepAutoData,
     consultarCep,
     limparConsulta: limparConsultaCep,
   } = useCepAutocomplete()
