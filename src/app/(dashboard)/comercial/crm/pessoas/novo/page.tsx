@@ -21,7 +21,7 @@ import { toast } from "sonner"
 import { SelectUf } from "@/components/crm/select-uf"
 import { SelectCidade } from "@/components/crm/select-cidade"
 import { SelectSegmento } from "@/components/crm/select-segmento"
-import { useCepAutocomplete, formatCep } from "@/hooks/useCepAutocomplete"
+import { useCepAutocomplete } from "@/hooks/useCepAutocomplete"
 import type {
   ConsultaCnpjData,
   PessoaForm,
@@ -40,9 +40,6 @@ export default function NovaPessoaPage() {
   const [cpfConsulting, setCpfConsulting] = useState(false)
   const [cpfConsulted, setCpfConsulted] = useState(false)
   const [cpfApiData, setCpfApiData] = useState<any | null>(null)
-  const [cepConsulting, setCepConsulting] = useState(false)
-  const [cepConsulted, setCepConsulted] = useState(false)
-  const [cepData, setCepData] = useState<any | null>(null)
   const [form, setForm] = useState<PessoaForm>({
     tipoPessoa: "PJ",
     nome: "",

@@ -15,7 +15,7 @@ import {
 import { SelectUf } from "./select-uf"
 import { SelectCidade } from "./select-cidade"
 import { SelectSegmento } from "./select-segmento"
-import { useCepAutocomplete, formatCep } from "@/hooks/useCepAutocomplete"
+import { useCepAutocomplete } from "@/hooks/useCepAutocomplete"
 
 type Props = {
   onCreated: (id: number, razaoSocial: string) => void
@@ -142,10 +142,6 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
   const [cpfConsulting, setCpfConsulting] = useState(false)
   const [cpfConsulted, setCpfConsulted] = useState(false)
   const [cpfApiData, setCpfApiData] = useState<ConsultaCpfData | null>(null)
-
-  const [cepConsulting, setCepConsulting] = useState(false)
-  const [cepConsulted, setCepConsulted] = useState(false)
-  const [cepData, setCepData] = useState<any | null>(null)
 
   const { data: estados } = useQuery<{ id: number; uf: string }[]>({
     queryKey: ["crm-estados"],

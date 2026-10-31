@@ -104,12 +104,6 @@ export default function NovoClientePage() {
     }
   }
 
-  function formatCep(v: string) {
-    const d = v.replace(/\D/g, "")
-    if (d.length !== 8) return v
-    return `${d.slice(0, 2)}.${d.slice(2, 5)}-${d.slice(5, 8)}`
-  }
-
   async function handleConsultarCep() {
     const digits = (form.cep || "").replace(/\D/g, "")
     if (digits.length !== 8) {

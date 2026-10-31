@@ -258,10 +258,6 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
     setCliente((prev) => (prev ? { ...prev, [field]: value } : null))
   }
 
-  const [cepConsulting, setCepConsulting] = useState(false)
-  const [cepConsulted, setCepConsulted] = useState(false)
-  const [cepData, setCepData] = useState<any | null>(null)
-
   const {
     formatCep,
     cepConsulting,
@@ -272,7 +268,7 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
     limparConsulta: limparConsultaCep,
   } = useCepAutocomplete()
 
-  function formatCep(v: string) {
+  // function formatCep removed - now from hook
     const d = v.replace(/\D/g, "")
     if (d.length !== 8) return v
     return `${d.slice(0, 2)}.${d.slice(2, 5)}-${d.slice(5, 8)}`
@@ -310,8 +306,6 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
       setCepConsulting(false)
     }
   }
-
-  const {
 
   const handleCheckboxChange = (field: keyof Cliente, checked: boolean) => {
     setCliente((prev) => (prev ? { ...prev, [field]: checked } : null))
