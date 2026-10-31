@@ -13,7 +13,7 @@ import {
   STATUS_PEDIDO_VENDA,
   STATUS_PEDIDO_VENDA_LABELS,
 } from "@/lib/crm/documento-venda"
-import type { ItemVendaLinha } from "@/lib/crm/documento-venda"
+import type { CatalogoVendaItem, ItemVendaLinha } from "@/lib/crm/documento-venda"
 
 function NovoPedidoVendaContent() {
   const router = useRouter()
@@ -41,6 +41,8 @@ function NovoPedidoVendaContent() {
     },
   ])
   const [oportunidades, setOportunidades] = useState<{ id: number; titulo: string }[]>([])
+  const [produtos, setProdutos] = useState<CatalogoVendaItem[]>([])
+  const [servicos, setServicos] = useState<CatalogoVendaItem[]>([])
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -57,6 +59,20 @@ function NovoPedidoVendaContent() {
         )
       )
       .catch(() => setOportunidades([]))
+  }, [])
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/crm/produtos")
+        .then((r) => (r.ok ? r.json() : []))
+        .catch(() => []),
+      fetch("/api/crm/servicos")
+        .then((r) => (r.ok ? r.json() : []))
+        .catch(() => []),
+    ]).then(([listaProdutos, listaServicos]) => {
+      setProdutos(Array.isArray(listaProdutos) ? listaProdutos : [])
+      setServicos(Array.isArray(listaServicos) ? listaServicos : [])
+    })
   }, [])
 
   function setField(field: string, value: string) {
@@ -96,6 +112,10 @@ function NovoPedidoVendaContent() {
               quantidade: i.quantidade !== "" ? Number(i.quantidade) : null,
               valorUnitario: i.valorUnitario !== "" ? Number(i.valorUnitario) : null,
               valorTotal: i.valorTotal !== "" ? Number(i.valorTotal) : null,
+              produtoId:
+                i.catalogoTipo === "produto" && i.catalogoId ? Number(i.catalogoId) : null,
+              servicoId:
+                i.catalogoTipo === "servico" && i.catalogoId ? Number(i.catalogoId) : null,
             })),
         }),
       })
@@ -142,6 +162,8 @@ function NovoPedidoVendaContent() {
           statusOptions={statusOptions(STATUS_PEDIDO_VENDA, STATUS_PEDIDO_VENDA_LABELS)}
           titulo="Dados do Pedido de Venda"
           plural="pedido"
+          produtos={produtos}
+          servicos={servicos}
         />
 
         <div className="flex gap-3">

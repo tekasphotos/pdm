@@ -497,9 +497,39 @@ CREATE TABLE IF NOT EXISTS crm_pedidos_venda (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- crm_produtos: catalogo generico de produtos do CRM (independente dos cadastros texteis)
+CREATE TABLE IF NOT EXISTS crm_produtos (
+  id SERIAL PRIMARY KEY,
+  codigo VARCHAR(100) UNIQUE,
+  nome VARCHAR(300) NOT NULL,
+  descricao TEXT,
+  unidade VARCHAR(20) NOT NULL DEFAULT 'METROS',
+  unidade_outra VARCHAR(50),
+  preco NUMERIC(12,2),
+  ativo BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- crm_servicos: catalogo generico de servicos do CRM
+CREATE TABLE IF NOT EXISTS crm_servicos (
+  id SERIAL PRIMARY KEY,
+  codigo VARCHAR(100) UNIQUE,
+  nome VARCHAR(300) NOT NULL,
+  descricao TEXT,
+  unidade VARCHAR(20) NOT NULL DEFAULT 'UNIDADES',
+  unidade_outra VARCHAR(50),
+  preco NUMERIC(12,2),
+  ativo BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS crm_pedido_venda_itens (
   id SERIAL PRIMARY KEY,
   pedido_venda_id INTEGER NOT NULL REFERENCES crm_pedidos_venda(id) ON DELETE CASCADE,
+  produto_id INTEGER REFERENCES crm_produtos(id) ON DELETE SET NULL,
+  servico_id INTEGER REFERENCES crm_servicos(id) ON DELETE SET NULL,
   produto VARCHAR(300) NOT NULL,
   codigo VARCHAR(100),
   unidade VARCHAR(20) NOT NULL DEFAULT 'METROS',
@@ -509,6 +539,16 @@ CREATE TABLE IF NOT EXISTS crm_pedido_venda_itens (
   valor_total NUMERIC(12,2),
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- itens de pedido de venda: vinculo opcional com os catalogos do CRM
+DO $$ BEGIN
+  ALTER TABLE crm_pedido_venda_itens ADD COLUMN IF NOT EXISTS produto_id INTEGER REFERENCES crm_produtos(id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_column THEN NULL; WHEN undefined_table THEN NULL;
+END $$;
+DO $$ BEGIN
+  ALTER TABLE crm_pedido_venda_itens ADD COLUMN IF NOT EXISTS servico_id INTEGER REFERENCES crm_servicos(id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_column THEN NULL; WHEN undefined_table THEN NULL;
+END $$;
 
 -- Engenharia de Processos: ontologia (Empresa → Site → Área → Processo → Subprocesso → Atividade)
 CREATE TABLE IF NOT EXISTS proc_empresas (

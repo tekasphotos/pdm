@@ -39,7 +39,7 @@ describe("NovaPessoaPage", () => {
               bairro: "Centro",
               municipio: "São Paulo",
               uf: "SP",
-              cep: "01000000",
+              cep: "01000-000",
               telefones: [{ ddd: "11", numero: "99999999", is_fax: false }],
             },
           },
@@ -159,13 +159,13 @@ describe("NovaPessoaPage", () => {
     await waitFor(() => {
       expect(screen.getByDisplayValue("Tecelagem Alpha Ltda")).toBeInTheDocument()
       expect(screen.getByDisplayValue("Alpha Confecções")).toBeInTheDocument()
+      expect(screen.getByDisplayValue("Confecção de peças do vestuário")).toBeInTheDocument()
+      expect(screen.getByDisplayValue("Rua das Flores")).toBeInTheDocument()
+      expect(screen.getByDisplayValue("São Paulo")).toBeInTheDocument()
+      expect(screen.getByDisplayValue("01.000-000")).toBeInTheDocument()
+      expect(screen.getByText("Tecelagem Alpha Ltda")).toBeInTheDocument()
+      expect(screen.getByText(/Ativa/)).toBeInTheDocument()
     })
-    expect(screen.getByDisplayValue("Confecção de peças do vestuário")).toBeInTheDocument()
-    expect(screen.getByDisplayValue("Rua das Flores")).toBeInTheDocument()
-    expect(screen.getByDisplayValue("São Paulo")).toBeInTheDocument()
-    expect(screen.getByDisplayValue("01000000")).toBeInTheDocument()
-    expect(screen.getByText("Tecelagem Alpha Ltda")).toBeInTheDocument()
-    expect(screen.getByText(/Ativa/)).toBeInTheDocument()
     await waitFor(() =>
       expect(toastMock.success).toHaveBeenCalledWith("Dados preenchidos automaticamente")
     )

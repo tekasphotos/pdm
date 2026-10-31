@@ -17,7 +17,7 @@ import {
   somarValoresTotais,
   LABEL_UNIDADES,
 } from "@/lib/crm/documento-venda"
-import type { ItemVendaLinha } from "@/lib/crm/documento-venda"
+import type { CatalogoVendaItem, ItemVendaLinha } from "@/lib/crm/documento-venda"
 import type { PedidoVenda, PedidoVendaForm as PedidoVendaFormType } from "../types"
 
 export default function PedidoVendaDetailPage() {
@@ -31,6 +31,8 @@ export default function PedidoVendaDetailPage() {
   const [form, setForm] = useState<Partial<PedidoVendaFormType>>({})
   const [itens, setItens] = useState<ItemVendaLinha[]>([])
   const [oportunidades, setOportunidades] = useState<{ id: number; titulo: string }[]>([])
+  const [produtos, setProdutos] = useState<CatalogoVendaItem[]>([])
+  const [servicos, setServicos] = useState<CatalogoVendaItem[]>([])
   const [saving, setSaving] = useState(false)
 
   function setField(field: string, value: string) {
@@ -66,6 +68,20 @@ export default function PedidoVendaDetailPage() {
         )
       )
       .catch(() => setOportunidades([]))
+  }, [])
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/crm/produtos")
+        .then((r) => (r.ok ? r.json() : []))
+        .catch(() => []),
+      fetch("/api/crm/servicos")
+        .then((r) => (r.ok ? r.json() : []))
+        .catch(() => []),
+    ]).then(([listaProdutos, listaServicos]) => {
+      setProdutos(Array.isArray(listaProdutos) ? listaProdutos : [])
+      setServicos(Array.isArray(listaServicos) ? listaServicos : [])
+    })
   }, [])
 
   function startEditing() {
@@ -107,6 +123,10 @@ export default function PedidoVendaDetailPage() {
               quantidade: i.quantidade !== "" ? Number(i.quantidade) : null,
               valorUnitario: i.valorUnitario !== "" ? Number(i.valorUnitario) : null,
               valorTotal: i.valorTotal !== "" ? Number(i.valorTotal) : null,
+              produtoId:
+                i.catalogoTipo === "produto" && i.catalogoId ? Number(i.catalogoId) : null,
+              servicoId:
+                i.catalogoTipo === "servico" && i.catalogoId ? Number(i.catalogoId) : null,
             })),
         }),
       })
@@ -233,6 +253,8 @@ export default function PedidoVendaDetailPage() {
             statusOptions={statusOptions(STATUS_PEDIDO_VENDA, STATUS_PEDIDO_VENDA_LABELS)}
             titulo="Dados do Pedido de Venda"
             plural="pedido"
+            produtos={produtos}
+            servicos={servicos}
           />
           <div className="flex gap-3">
             <button
@@ -264,7 +286,7 @@ export default function PedidoVendaDetailPage() {
                 <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                   <tr>
                     <th className="px-3 py-2 text-left text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">
-                      Produto
+                      Item
                     </th>
                     <th className="px-3 py-2 text-left text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 uppercase hidden sm:table-cell">
                       Un.
@@ -283,6 +305,15 @@ export default function PedidoVendaDetailPage() {
                       <td className="px-3 py-2.5 text-sm">
                         <p className="font-medium text-slate-900 dark:text-slate-100">
                           {item.produto}
+                          {item.servicoId ? (
+                            <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
+                              Serviço
+                            </span>
+                          ) : item.produtoId ? (
+                            <span className="ml-2 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium uppercase text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+                              Produto
+                            </span>
+                          ) : null}
                         </p>
                         {item.codigo && <p className="text-xs text-slate-400">{item.codigo}</p>}
                       </td>

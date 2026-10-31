@@ -17,6 +17,8 @@ export type PedidoVendaResumo = {
 export type PedidoVendaItem = {
   id: number
   pedidoVendaId: number
+  produtoId: number | null
+  servicoId: number | null
   produto: string
   codigo: string | null
   unidade: string

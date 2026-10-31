@@ -2,6 +2,7 @@ import { SelectUf } from "@/components/crm/select-uf"
 import { SelectCidade } from "@/components/crm/select-cidade"
 import { SelectSegmento } from "@/components/crm/select-segmento"
 import { STATUS_OPTIONS } from "./constants"
+import { useCepAutocomplete, formatCep } from "@/hooks/useCepAutocomplete"
 import type { Pessoa, PessoaForm, TipoPessoa } from "../../types"
 
 interface DadosPessoaCardProps {
@@ -23,6 +24,8 @@ export function DadosPessoaCard({
   setTipoPessoa,
   estadoId,
 }: DadosPessoaCardProps) {
+  const { loading: cepLoading, error: cepError, handleCepChange, handleCepBlur } =
+    useCepAutocomplete(form, (field, value) => setForm((p) => ({ ...p, [field]: value })))
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
       <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-4">
@@ -232,10 +235,13 @@ export function DadosPessoaCard({
               <label className="block text-xs font-medium text-slate-500 mb-1">CEP</label>
               <input
                 type="text"
-                value={form.cep || ""}
-                onChange={(e) => setForm((p: PessoaForm) => ({ ...p, cep: e.target.value }))}
+                value={formatCep(form.cep || "")}
+                onChange={(e) => handleCepChange(e.target.value)}
+                onBlur={(e) => handleCepBlur(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
               />
+              {cepLoading && <p className="text-xs text-blue-600 mt-1">Buscando endereço...</p>}
+              {cepError && <p className="text-xs text-red-600 mt-1">{cepError}</p>}
             </div>
             <div className="col-span-2">
               <label className="block text-xs font-medium text-slate-500 mb-1">UF</label>

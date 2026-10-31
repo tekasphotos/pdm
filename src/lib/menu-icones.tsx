@@ -78,6 +78,7 @@ const ENTRADAS: [string, string, LucideIcon][] = [
   ["Propostas", "FileText", FileText],
   ["Faturamentos", "Receipt", Receipt],
   ["Pedidos de Venda", "ShoppingCart", ShoppingCart],
+  ["Serviços", "Wrench", Wrench],
   ["Visitas", "Calendar", Calendar],
   ["Viagens", "Plane", Plane],
   ["Tarefas", "CheckSquare", CheckSquare],

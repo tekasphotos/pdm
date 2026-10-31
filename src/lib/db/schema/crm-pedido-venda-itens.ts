@@ -1,11 +1,15 @@
 import { pgTable, serial, integer, varchar, numeric, timestamp } from "drizzle-orm/pg-core"
 import { crmPedidosVenda } from "./crm-pedidos-venda"
+import { crmProdutos } from "./crm-produtos"
+import { crmServicos } from "./crm-servicos"
 
 export const crmPedidoVendaItens = pgTable("crm_pedido_venda_itens", {
   id: serial("id").primaryKey(),
   pedidoVendaId: integer("pedido_venda_id")
     .notNull()
     .references(() => crmPedidosVenda.id, { onDelete: "cascade" }),
+  produtoId: integer("produto_id").references(() => crmProdutos.id, { onDelete: "set null" }),
+  servicoId: integer("servico_id").references(() => crmServicos.id, { onDelete: "set null" }),
   produto: varchar("produto", { length: 300 }).notNull(),
   codigo: varchar("codigo", { length: 100 }),
   unidade: varchar("unidade", { length: 20 }).notNull().default("METROS"),

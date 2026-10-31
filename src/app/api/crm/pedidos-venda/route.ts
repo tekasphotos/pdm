@@ -6,7 +6,7 @@ import { crmPedidoVendaItens } from "@/lib/db/schema/crm-pedido-venda-itens"
 import { crmOportunidades } from "@/lib/db/schema/crm-oportunidades"
 import { eq, desc, sql, ilike, or, and, count } from "drizzle-orm"
 import { registrarLog } from "@/lib/notificar"
-import { normalizarItensVenda } from "@/lib/crm/documento-venda"
+import { normalizarItensPedidoVenda } from "@/lib/crm/documento-venda"
 
 export async function GET(req: NextRequest) {
   try {
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Oportunidade não encontrada" }, { status: 404 })
     }
 
-    const itens = normalizarItensVenda(body.itens)
+    const itens = normalizarItensPedidoVenda(body.itens)
 
     if (itens.length === 0) {
       return NextResponse.json({ error: "Adicione ao menos um item com produto" }, { status: 400 })

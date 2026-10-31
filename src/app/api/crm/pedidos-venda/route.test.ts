@@ -151,6 +151,8 @@ describe("POST /api/crm/pedidos-venda", () => {
           quantidade: 100,
           valorUnitario: 12.5,
           valorTotal: 1250,
+          produtoId: 5,
+          servicoId: null,
         },
       ],
     })

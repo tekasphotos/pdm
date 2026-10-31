@@ -8,6 +8,7 @@ import { getInfoContent } from "@/lib/info-content"
 import { SelectUf } from "@/components/crm/select-uf"
 import { SelectCidade } from "@/components/crm/select-cidade"
 import { SelectSegmento } from "@/components/crm/select-segmento"
+import { useCepAutocomplete, formatCep } from "@/hooks/useCepAutocomplete"
 import Link from "next/link"
 import { ArrowLeft, Save } from "lucide-react"
 import { toast } from "sonner"
@@ -27,12 +28,19 @@ export default function NovoClientePage() {
     contato: "",
     segmento: "",
     endereco: "",
+    numero: "",
+    complemento: "",
+    bairro: "",
     cidade: "",
     uf: "",
+    cep: "",
     idIntegracao: "",
   })
   const [saving, setSaving] = useState(false)
   const [estadoId, setEstadoId] = useState<number | null>(null)
+
+  const { loading: cepLoading, error: cepError, handleCepChange, handleCepBlur } =
+    useCepAutocomplete(form, setField)
   const { data: estados = [] } = useQuery<{ id: number; uf: string }[]>({
     queryKey: ["crm-estados"],
     queryFn: async () => {
@@ -236,7 +244,55 @@ export default function NovoClientePage() {
               className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div className="sm:col-span-2">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Número
+            </label>
+            <input
+              type="text"
+              value={form.numero}
+              onChange={(e) => setField("numero", e.target.value)}
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Complemento
+            </label>
+            <input
+              type="text"
+              value={form.complemento}
+              onChange={(e) => setField("complemento", e.target.value)}
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Bairro
+            </label>
+            <input
+              type="text"
+              value={form.bairro}
+              onChange={(e) => setField("bairro", e.target.value)}
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              CEP
+            </label>
+            <input
+              type="text"
+              value={formatCep(form.cep)}
+              onChange={(e) => handleCepChange(e.target.value)}
+              onBlur={(e) => handleCepBlur(e.target.value)}
+              placeholder="00.000-000"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {cepLoading && <p className="text-xs text-blue-600 mt-1">Buscando endereço...</p>}
+            {cepError && <p className="text-xs text-red-600 mt-1">{cepError}</p>}
+          </div>
+          <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               UF
             </label>

@@ -1,12 +1,13 @@
 "use client"
 
 import { FileText, Plus, Trash2, Package } from "lucide-react"
-import type { ItemVendaLinha } from "@/lib/crm/documento-venda"
+import type { CatalogoTipo, CatalogoVendaItem, ItemVendaLinha } from "@/lib/crm/documento-venda"
 import {
   UNIDADES_MEDIDA,
   UNIDADE_OUTRA,
   LABEL_UNIDADES,
   calcularValorTotal,
+  catalogoParaLinha,
   somarValoresTotais,
 } from "@/lib/crm/documento-venda"
 
@@ -19,6 +20,8 @@ interface DocumentoVendaFormProps {
   statusOptions: { value: string; label: string }[]
   titulo: string
   plural: string
+  produtos?: CatalogoVendaItem[]
+  servicos?: CatalogoVendaItem[]
 }
 
 export function DocumentoVendaForm({
@@ -30,7 +33,11 @@ export function DocumentoVendaForm({
   statusOptions,
   titulo,
   plural,
+  produtos,
+  servicos,
 }: DocumentoVendaFormProps) {
+  const usarCatalogos = produtos !== undefined || servicos !== undefined
+
   function updateItem(index: number, campo: keyof ItemVendaLinha, valor: string) {
     const novos = itens.map((item, i) => {
       if (i !== index) return item
@@ -41,6 +48,25 @@ export function DocumentoVendaForm({
       return atualizado
     })
     setItens(novos)
+  }
+
+  function selecionarCatalogo(index: number, tipo: CatalogoTipo, id: string) {
+    setItens(
+      itens.map((item, i) => {
+        if (i !== index) return item
+        if (tipo === "livre") {
+          return { ...item, catalogoTipo: "livre", catalogoId: "" }
+        }
+        const lista = tipo === "produto" ? produtos || [] : servicos || []
+        const encontrado = lista.find((c) => String(c.id) === id)
+        if (!encontrado) {
+          return { ...item, catalogoTipo: tipo, catalogoId: "" }
+        }
+        const atualizado = { ...item, ...catalogoParaLinha(tipo, encontrado) }
+        atualizado.valorTotal = calcularValorTotal(atualizado.quantidade, atualizado.valorUnitario)
+        return atualizado
+      })
+    )
   }
 
   function addItem() {
@@ -54,6 +80,8 @@ export function DocumentoVendaForm({
         quantidade: "",
         valorUnitario: "",
         valorTotal: "",
+        catalogoTipo: "livre",
+        catalogoId: "",
       },
     ])
   }
@@ -210,21 +238,75 @@ export function DocumentoVendaForm({
           </p>
         ) : (
           <div className="space-y-3">
-            {itens.map((item, index) => (
+            {itens.map((item, index) => {
+              const tipo = item.catalogoTipo || "livre"
+              const listaCatalogo = tipo === "servico" ? servicos || [] : produtos || []
+              return (
               <div
                 key={index}
                 className="rounded-lg border border-slate-200 dark:border-slate-700 p-3"
               >
+                {usarCatalogos && (
+                  <div className="grid grid-cols-12 gap-3 mb-3">
+                    <div className="col-span-12 sm:col-span-4">
+                      <label className="block text-xs font-medium text-slate-500 mb-1">
+                        Tipo
+                      </label>
+                      <select
+                        value={tipo}
+                        onChange={(e) =>
+                          selecionarCatalogo(index, e.target.value as CatalogoTipo, "")
+                        }
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="livre">Item livre</option>
+                        {produtos !== undefined && <option value="produto">Produto</option>}
+                        {servicos !== undefined && <option value="servico">Serviço</option>}
+                      </select>
+                    </div>
+                    <div className="col-span-12 sm:col-span-8">
+                      <label className="block text-xs font-medium text-slate-500 mb-1">
+                        {tipo === "servico" ? "Serviço do catálogo" : "Produto do catálogo"}
+                      </label>
+                      <select
+                        value={item.catalogoId || ""}
+                        onChange={(e) =>
+                          selecionarCatalogo(
+                            index,
+                            tipo as Exclude<CatalogoTipo, "livre">,
+                            e.target.value
+                          )
+                        }
+                        disabled={tipo === "livre"}
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                      >
+                        <option value="">
+                          {tipo === "livre"
+                            ? "Preencha o item manualmente"
+                            : "Selecione no catálogo..."}
+                        </option>
+                        {listaCatalogo.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.nome}
+                            {c.codigo ? ` — ${c.codigo}` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-12 gap-3 items-end">
                   <div className="col-span-12 sm:col-span-4">
                     <label className="block text-xs font-medium text-slate-500 mb-1">
-                      Produto *
+                      {tipo === "servico" ? "Serviço *" : "Produto *"}
                     </label>
                     <input
                       type="text"
                       value={item.produto}
                       onChange={(e) => updateItem(index, "produto", e.target.value)}
-                      placeholder="Ex: Tecido 100% algodão"
+                      placeholder={
+                        tipo === "servico" ? "Ex: Frete" : "Ex: Tecido 100% algodão"
+                      }
                       className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -327,7 +409,8 @@ export function DocumentoVendaForm({
                   </div>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

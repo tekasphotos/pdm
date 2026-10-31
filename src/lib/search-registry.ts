@@ -850,6 +850,26 @@ export const searchRegistry: SearchItem[] = [
     module: "CRM",
   },
 
+  // CRM — Produtos
+  {
+    id: "crm-produtos",
+    label: "CRM — Produtos",
+    keywords: ["crm", "produto", "produtos", "catalogo", "catálogo", "preco", "preço", "comercial"],
+    href: "/comercial/crm/produtos",
+    description: "Catálogo genérico de produtos usados nos pedidos de venda do CRM",
+    module: "CRM",
+  },
+
+  // CRM — Serviços
+  {
+    id: "crm-servicos",
+    label: "CRM — Serviços",
+    keywords: ["crm", "servico", "serviço", "servicos", "serviços", "catalogo", "catálogo", "comercial"],
+    href: "/comercial/crm/servicos",
+    description: "Catálogo genérico de serviços usados nos pedidos de venda do CRM",
+    module: "CRM",
+  },
+
   // CRM — Equipes
   {
     id: "crm-equipes",

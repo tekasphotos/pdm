@@ -7,7 +7,7 @@ import { crmOportunidades } from "@/lib/db/schema/crm-oportunidades"
 import { eq, asc } from "drizzle-orm"
 import { registrarLog, notificar, notificarDelecao } from "@/lib/notificar"
 import { handleApiError } from "@/lib/api-error"
-import { normalizarItensVenda } from "@/lib/crm/documento-venda"
+import { normalizarItensPedidoVenda } from "@/lib/crm/documento-venda"
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -87,7 +87,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (body.referenciaExterna !== undefined)
       values.referenciaExterna = body.referenciaExterna?.trim() || null
 
-    const itens = body.itens !== undefined ? normalizarItensVenda(body.itens) : null
+    const itens = body.itens !== undefined ? normalizarItensPedidoVenda(body.itens) : null
 
     if (itens?.length === 0) {
       return NextResponse.json({ error: "Adicione ao menos um item com produto" }, { status: 400 })

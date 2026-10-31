@@ -432,11 +432,12 @@ export const crmContent: Record<string, InfoContent> = {
       "Adicione ao menos um item com produto preenchido.",
       "O valor total do item é calculado automaticamente pela quantidade × valor unitário, mas pode ser ajustado.",
       "Use 'OUTRA' na unidade quando a medida não estiver na lista.",
+      "Selecione um produto ou serviço do catálogo para preencher nome, código, unidade e preço automaticamente.",
     ],
     fields: [
       { name: "Oportunidade", desc: "Oportunidade vinculada (obrigatório)" },
       { name: "Data de Emissão", desc: "Data em que o pedido foi emitido" },
-      { name: "Itens", desc: "Produto, código, unidade, quantidade, valor unitário e valor total" },
+      { name: "Itens", desc: "Produto ou serviço, código, unidade, quantidade, valor unitário e valor total" },
     ],
   },
   "/comercial/crm/pedidos-venda/[id]": {
@@ -830,6 +831,48 @@ export const crmContent: Record<string, InfoContent> = {
     fields: [
       { name: "Nome", desc: "Nome do segmento de mercado" },
       { name: "Ativo", desc: "Indica se o segmento pode ser usado em novos cadastros" },
+    ],
+  },
+
+  // ==================== PRODUTOS (CATÁLOGO CRM) ====================
+  "/comercial/crm/produtos": {
+    title: "Produtos",
+    description:
+      "Catálogo genérico de produtos do CRM, independente dos cadastros têxteis. Os itens ficam disponíveis para seleção nos pedidos de venda.",
+    rules: [
+      "O nome é obrigatório; código, preço, unidade e descrição são opcionais.",
+      "O código deve ser único quando informado.",
+      "Produtos inativos continuam no histórico, mas não devem ser usados em novos pedidos.",
+      "Ao selecionar o produto no pedido de venda, nome, código, unidade e preço são preenchidos automaticamente.",
+    ],
+    fields: [
+      { name: "Nome", desc: "Nome do produto" },
+      { name: "Código", desc: "Código interno ou do ERP (único)" },
+      { name: "Unidade", desc: "Unidade de medida padrão do produto" },
+      { name: "Preço", desc: "Preço unitário sugerido" },
+      { name: "Ativo", desc: "Indica se o produto pode ser usado em novos pedidos" },
+      { name: "Descrição", desc: "Detalhes adicionais do produto" },
+    ],
+  },
+
+  // ==================== SERVIÇOS (CATÁLOGO CRM) ====================
+  "/comercial/crm/servicos": {
+    title: "Serviços",
+    description:
+      "Catálogo genérico de serviços do CRM. Os itens ficam disponíveis para seleção nos pedidos de venda.",
+    rules: [
+      "O nome é obrigatório; código, preço, unidade e descrição são opcionais.",
+      "O código deve ser único quando informado.",
+      "Serviços inativos continuam no histórico, mas não devem ser usados em novos pedidos.",
+      "Ao selecionar o serviço no pedido de venda, nome, código, unidade e preço são preenchidos automaticamente.",
+    ],
+    fields: [
+      { name: "Nome", desc: "Nome do serviço" },
+      { name: "Código", desc: "Código interno ou do ERP (único)" },
+      { name: "Unidade", desc: "Unidade de cobrança do serviço (hora, mês, unidade...)" },
+      { name: "Preço", desc: "Preço unitário sugerido" },
+      { name: "Ativo", desc: "Indica se o serviço pode ser usado em novos pedidos" },
+      { name: "Descrição", desc: "Detalhes adicionais do serviço" },
     ],
   },
 

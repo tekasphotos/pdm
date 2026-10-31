@@ -25,6 +25,7 @@ import {
 import { toast } from "sonner"
 import { ConfirmModal } from "@/components/ui/confirm-modal"
 import { SelectSegmento } from "@/components/crm/select-segmento"
+import { useCepAutocomplete, formatCep } from "@/hooks/useCepAutocomplete"
 import type { Cliente, VinculoRepresentante, RepresentanteResumo } from "../types"
 import type { Contato } from "../../crm/contatos/types"
 
@@ -255,6 +256,9 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
     setCliente((prev) => (prev ? { ...prev, [field]: value } : null))
   }
 
+  const { loading: cepLoading, error: cepError, handleCepChange, handleCepBlur } =
+    useCepAutocomplete(cliente || {}, handleChange)
+
   const handleCheckboxChange = (field: keyof Cliente, checked: boolean) => {
     setCliente((prev) => (prev ? { ...prev, [field]: checked } : null))
   }
@@ -455,6 +459,58 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
                 onChange={(e) => handleChange("endereco", e.target.value)}
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
               />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Número
+              </label>
+              <input
+                type="text"
+                value={cliente.numero || ""}
+                onChange={(e) => handleChange("numero", e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Complemento
+              </label>
+              <input
+                type="text"
+                value={cliente.complemento || ""}
+                onChange={(e) => handleChange("complemento", e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Bairro
+              </label>
+              <input
+                type="text"
+                value={cliente.bairro || ""}
+                onChange={(e) => handleChange("bairro", e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                CEP
+              </label>
+              <input
+                type="text"
+                value={formatCep(cliente.cep || "")}
+                onChange={(e) => handleCepChange(e.target.value)}
+                onBlur={(e) => handleCepBlur(e.target.value)}
+                placeholder="00.000-000"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+              />
+              {cepLoading && <p className="text-xs text-blue-600 mt-1">Buscando endereço...</p>}
+              {cepError && <p className="text-xs text-red-600 mt-1">{cepError}</p>}
             </div>
 
             <div className="space-y-2 md:col-span-2">

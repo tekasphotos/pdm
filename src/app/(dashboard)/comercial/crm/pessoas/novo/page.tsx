@@ -21,6 +21,7 @@ import { toast } from "sonner"
 import { SelectUf } from "@/components/crm/select-uf"
 import { SelectCidade } from "@/components/crm/select-cidade"
 import { SelectSegmento } from "@/components/crm/select-segmento"
+import { useCepAutocomplete, formatCep } from "@/hooks/useCepAutocomplete"
 import type {
   ConsultaCnpjData,
   PessoaForm,
@@ -61,6 +62,9 @@ export default function NovaPessoaPage() {
   })
   const [saving, setSaving] = useState(false)
   const [estadoId, setEstadoId] = useState<number | null>(null)
+
+  const { loading: cepLoading, error: cepError, handleCepChange, handleCepBlur } =
+    useCepAutocomplete(form, setField)
   const { data: estados = [] } = useQuery<{ id: number; uf: string }[]>({
     queryKey: ["crm-estados"],
     queryFn: async () => {
@@ -176,7 +180,7 @@ export default function NovaPessoaPage() {
         bairro: api.bairro || prev.bairro,
         cidade: api.municipio || prev.cidade,
         uf: api.uf || prev.uf,
-        cep: api.cep || prev.cep,
+        cep: api.cep ? formatCep(api.cep) : prev.cep,
         telefone:
           prev.telefone ||
           (api.telefones?.[0] ? `${api.telefones[0].ddd}${api.telefones[0].numero}` : ""),
@@ -534,11 +538,14 @@ export default function NovaPessoaPage() {
             </label>
             <input
               type="text"
-              value={form.cep}
-              onChange={(e) => setField("cep", e.target.value)}
+              value={formatCep(form.cep)}
+              onChange={(e) => handleCepChange(e.target.value)}
+              onBlur={(e) => handleCepBlur(e.target.value)}
               placeholder="00.000-000"
               className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {cepLoading && <p className="text-xs text-blue-600 mt-1">Buscando endereço...</p>}
+            {cepError && <p className="text-xs text-red-600 mt-1">{cepError}</p>}
           </div>
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">

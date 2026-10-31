@@ -15,6 +15,7 @@ import {
 import { SelectUf } from "./select-uf"
 import { SelectCidade } from "./select-cidade"
 import { SelectSegmento } from "./select-segmento"
+import { useCepAutocomplete, formatCep } from "@/hooks/useCepAutocomplete"
 
 type Props = {
   onCreated: (id: number, razaoSocial: string) => void
@@ -70,6 +71,44 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
   const [uf, setUf] = useState("")
   const [cep, setCep] = useState("")
   const [estadoId, setEstadoId] = useState<number | null>(null)
+
+  const formRef = {
+    endereco,
+    numero,
+    complemento,
+    bairro,
+    cidade,
+    uf,
+    cep,
+  }
+  const setField = (field: string, value: string) => {
+    switch (field) {
+      case "endereco":
+        setEndereco(value)
+        break
+      case "numero":
+        setNumero(value)
+        break
+      case "complemento":
+        setComplemento(value)
+        break
+      case "bairro":
+        setBairro(value)
+        break
+      case "cidade":
+        setCidade(value)
+        break
+      case "uf":
+        setUf(value)
+        break
+      case "cep":
+        setCep(value)
+        break
+    }
+  }
+
+  const { loading: cepLoading, error: cepError, handleCepChange, handleCepBlur } =
+    useCepAutocomplete(formRef, setField)
 
   const [consulting, setConsulting] = useState(false)
   const [consulted, setConsulted] = useState(false)
@@ -473,11 +512,14 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
                 </label>
                 <input
                   type="text"
-                  value={cep}
-                  onChange={(e) => setCep(e.target.value)}
+                  value={formatCep(cep)}
+                  onChange={(e) => handleCepChange(e.target.value)}
+                  onBlur={(e) => handleCepBlur(e.target.value)}
                   placeholder="00.000-000"
                   className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                 />
+                {cepLoading && <p className="text-xs text-blue-600 mt-1">Buscando endereço...</p>}
+                {cepError && <p className="text-xs text-red-600 mt-1">{cepError}</p>}
               </div>
             </div>
           </div>

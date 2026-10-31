@@ -41,6 +41,8 @@ const CRM = [
   ["Propostas", "/comercial/crm/propostas"],
   ["Faturamentos", "/comercial/crm/faturamentos"],
   ["Pedidos de Venda", "/comercial/crm/pedidos-venda"],
+  ["Produtos", "/comercial/crm/produtos"],
+  ["Serviços", "/comercial/crm/servicos"],
   ["Campanhas", "/comercial/crm/campanhas"],
   ["Conversas WhatsApp", "/comercial/crm/conversas"],
   ["Relatórios CRM", "/comercial/crm/relatorios"],
