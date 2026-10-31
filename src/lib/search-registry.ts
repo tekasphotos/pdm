@@ -532,6 +532,22 @@ export const searchRegistry: SearchItem[] = [
     module: "Ferramentas",
   },
   {
+    id: "ferramentas-consulta-cep",
+    label: "Consulta CEP",
+    keywords: ["cep", "consulta", "endereco", "viacep", "ferramenta"],
+    href: "/ferramentas/consulta-cep",
+    description: "Consulta de endereço por CEP (ViaCEP)",
+    module: "Ferramentas",
+  },
+  {
+    id: "ferramentas-consulta-cpf",
+    label: "Consulta CPF",
+    keywords: ["cpf", "consulta", "pessoa", "fisica", "ferramenta"],
+    href: "/ferramentas/consulta-cpf",
+    description: "Consulta de CPF",
+    module: "Ferramentas",
+  },
+  {
     id: "ferramentas-nfe-cte",
     label: "NF-e → CT-e por Período",
     keywords: [
