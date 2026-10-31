@@ -35,20 +35,26 @@ type FieldMap = {
 const PESSOA_FIELDS: FieldMap[] = [
   { field: "nome", label: "Nome", apiKey: "nome", localKey: "nome" },
   { field: "cpf", label: "CPF", apiKey: "cpf", localKey: "cpf", format: (v) => formatCpf(v || "") },
-  { field: "endereco", label: "Logradouro", apiKey: "endereco?.logradouro", localKey: "endereco" },
-  { field: "numero", label: "Número", apiKey: "endereco?.numero", localKey: "numero" },
-  { field: "complemento", label: "Complemento", apiKey: "endereco?.complemento", localKey: "complemento" },
-  { field: "bairro", label: "Bairro", apiKey: "endereco?.bairro", localKey: "bairro" },
-  { field: "cidade", label: "Cidade", apiKey: "endereco?.cidade", localKey: "cidade" },
-  { field: "uf", label: "UF", apiKey: "endereco?.uf", localKey: "uf" },
-  { field: "cep", label: "CEP", apiKey: "endereco?.cep", localKey: "cep", format: (v) => formatCpf(v || "") },
+  { field: "endereco", label: "Logradouro", apiKey: "endereco.logradouro", localKey: "endereco" },
+  { field: "numero", label: "Número", apiKey: "endereco.numero", localKey: "numero" },
+  { field: "complemento", label: "Complemento", apiKey: "endereco.complemento", localKey: "complemento" },
+  { field: "bairro", label: "Bairro", apiKey: "endereco.bairro", localKey: "bairro" },
+  { field: "cidade", label: "Cidade", apiKey: "endereco.cidade", localKey: "cidade" },
+  { field: "uf", label: "UF", apiKey: "endereco.uf", localKey: "uf" },
+  { field: "cep", label: "CEP", apiKey: "endereco.cep", localKey: "cep", format: (v) => formatCpf(v || "") },
 ]
 
 function getApiValue(apiData: any, field: FieldMap) {
+  if (!apiData) return ""
   if (field.format) return field.format(apiData)
-  if (field.apiKey.includes("?")) {
-    const keys = field.apiKey.split("?")
-    return apiData?.[keys[0]]?.[keys[1]] || ""
+  if (field.apiKey.includes(".")) {
+    const keys = field.apiKey.split(".")
+    let value: any = apiData
+    for (const key of keys) {
+      if (value === null || value === undefined) return ""
+      value = value[key]
+    }
+    return value || ""
   }
   return apiData?.[field.apiKey] || ""
 }
