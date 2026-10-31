@@ -39,12 +39,16 @@ export default function NovoClientePage() {
   const [saving, setSaving] = useState(false)
   const [estadoId, setEstadoId] = useState<number | null>(null)
 
+  const [cepConsulting, setCepConsulting] = useState(false)
+  const [cepConsulted, setCepConsulted] = useState(false)
+  const [cepData, setCepData] = useState<any | null>(null)
+
   const {
     formatCep,
-    cepConsulting,
-    cepConsulted,
+    cepConsulting: cepAutoConsulting,
+    cepConsulted: cepAutoConsulted,
     cepError,
-    cepData,
+    cepData: cepAutoData,
     consultarCep,
     limparConsulta: limparConsultaCep,
   } = useCepAutocomplete()
