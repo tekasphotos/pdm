@@ -10,7 +10,7 @@ import { SelectCidade } from "@/components/crm/select-cidade"
 import { SelectSegmento } from "@/components/crm/select-segmento"
 import { useCepAutocomplete, formatCep } from "@/hooks/useCepAutocomplete"
 import Link from "next/link"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Save, Loader2, Search, AlertCircle, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 
 export default function NovoClientePage() {
@@ -39,8 +39,15 @@ export default function NovoClientePage() {
   const [saving, setSaving] = useState(false)
   const [estadoId, setEstadoId] = useState<number | null>(null)
 
-  const { loading: cepLoading, error: cepError, handleCepChange, handleCepBlur } =
-    useCepAutocomplete(form, setField)
+  const {
+    formatCep,
+    cepConsulting,
+    cepConsulted,
+    cepError,
+    cepData,
+    consultarCep,
+    limparConsulta: limparConsultaCep,
+  } = useCepAutocomplete()
   const { data: estados = [] } = useQuery<{ id: number; uf: string }[]>({
     queryKey: ["crm-estados"],
     queryFn: async () => {
@@ -94,6 +101,52 @@ export default function NovoClientePage() {
       toast.error(error instanceof Error ? error.message : "Erro ao cadastrar cliente")
     } finally {
       setSaving(false)
+    }
+  }
+
+  function formatCep(v: string) {
+    const d = v.replace(/\D/g, "")
+    if (d.length !== 8) return v
+    return `${d.slice(0, 2)}.${d.slice(2, 5)}-${d.slice(5, 8)}`
+  }
+
+  async function handleConsultarCep() {
+    const digits = (form.cep || "").replace(/\D/g, "")
+    if (digits.length !== 8) {
+      toast.error("CEP deve ter 8 dígitos")
+      return
+    }
+    setCepConsulting(true)
+    setCepConsulted(false)
+    setCepData(null)
+    try {
+      const res = await fetch(`/api/crm/consulta-cep?cep=${digits}`)
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Erro na consulta")
+      }
+      const result = await res.json()
+      const api = result.apiData
+      if (!api) {
+        setCepConsulted(true)
+        toast.error("CEP não encontrado")
+        return
+      }
+      setCepData(api)
+      setCepConsulted(true)
+      setForm((prev) => ({
+        ...prev,
+        cep: formatCep(digits),
+        endereco: api.logradouro || prev.endereco,
+        bairro: api.bairro || prev.bairro,
+        cidade: api.localidade || prev.cidade,
+        uf: api.uf || prev.uf,
+      }))
+      toast.success("Endereço preenchido automaticamente")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao consultar CEP")
+    } finally {
+      setCepConsulting(false)
     }
   }
 
@@ -281,16 +334,52 @@ export default function NovoClientePage() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               CEP
             </label>
-            <input
-              type="text"
-              value={formatCep(form.cep)}
-              onChange={(e) => handleCepChange(e.target.value)}
-              onBlur={(e) => handleCepBlur(e.target.value)}
-              placeholder="00.000-000"
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {cepLoading && <p className="text-xs text-blue-600 mt-1">Buscando endereço...</p>}
-            {cepError && <p className="text-xs text-red-600 mt-1">{cepError}</p>}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={formatCep(form.cep)}
+                onChange={(e) => setField("cep", e.target.value)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), handleConsultarCep())
+                }
+                placeholder="00.000-000"
+                className="flex-1 min-w-0 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+              />
+              <button
+                type="button"
+                onClick={handleConsultarCep}
+                disabled={cepConsulting}
+                className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-950/80 border border-amber-200 dark:border-amber-800 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {cepConsulting ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Search size={14} />
+                )}
+                <span className="hidden sm:inline">Consultar</span>
+              </button>
+            </div>
+            {cepConsulted && !cepData && (
+              <div className="mt-2 rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-3 flex items-start gap-2">
+                <AlertCircle size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  CEP {formatCep(form.cep)} não encontrado. Preencha os dados manualmente.
+                </p>
+              </div>
+            )}
+            {cepData && (
+              <div className="mt-2 rounded-lg border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/30 p-3 flex items-start gap-2">
+                <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-emerald-800 dark:text-emerald-300">
+                    {cepData.logradouro}, {cepData.bairro} - {cepData.localidade}/{cepData.uf}
+                  </p>
+                  <p className="text-emerald-600 dark:text-emerald-400 text-xs mt-0.5">
+                    Endereço preenchido automaticamente
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">

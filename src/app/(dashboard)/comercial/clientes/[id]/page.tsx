@@ -21,11 +21,13 @@ import {
   MapPin,
   Plus,
   Unlink,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react"
 import { toast } from "sonner"
 import { ConfirmModal } from "@/components/ui/confirm-modal"
 import { SelectSegmento } from "@/components/crm/select-segmento"
-import { useCepAutocomplete, formatCep } from "@/hooks/useCepAutocomplete"
+import { useCepAutocomplete } from "@/hooks/useCepAutocomplete"
 import type { Cliente, VinculoRepresentante, RepresentanteResumo } from "../types"
 import type { Contato } from "../../crm/contatos/types"
 
@@ -256,8 +258,60 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
     setCliente((prev) => (prev ? { ...prev, [field]: value } : null))
   }
 
-  const { loading: cepLoading, error: cepError, handleCepChange, handleCepBlur } =
-    useCepAutocomplete(cliente || {}, handleChange as (field: string, value: string) => void)
+  const [cepConsulting, setCepConsulting] = useState(false)
+  const [cepConsulted, setCepConsulted] = useState(false)
+  const [cepData, setCepData] = useState<any | null>(null)
+
+  const {
+    formatCep,
+    cepConsulting,
+    cepConsulted,
+    cepError,
+    cepData,
+    consultarCep,
+    limparConsulta: limparConsultaCep,
+  } = useCepAutocomplete()
+
+  function formatCep(v: string) {
+    const d = v.replace(/\D/g, "")
+    if (d.length !== 8) return v
+    return `${d.slice(0, 2)}.${d.slice(2, 5)}-${d.slice(5, 8)}`
+  }
+
+  async function handleConsultarCep() {
+    const digits = (cliente?.cep || "").replace(/\D/g, "")
+    if (digits.length !== 8) {
+      toast.error("CEP deve ter 8 dígitos")
+      return
+    }
+    setCepConsulting(true)
+    setCepConsulted(false)
+    setCepData(null)
+    try {
+      const res = await fetch(`/api/crm/consulta-cep?cep=${digits}`)
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Erro na consulta")
+      }
+      const result = await res.json()
+      const api = result.apiData
+      if (!api) {
+        setCepConsulted(true)
+        toast.error("CEP não encontrado")
+        return
+      }
+      setCepData(api)
+      setCepConsulted(true)
+      setCliente((prev) => (prev ? { ...prev, cep: formatCep(digits), endereco: api.logradouro || prev.endereco, bairro: api.bairro || prev.bairro, cidade: api.localidade || prev.cidade, uf: api.uf || prev.uf } : null))
+      toast.success("Endereço preenchido automaticamente")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao consultar CEP")
+    } finally {
+      setCepConsulting(false)
+    }
+  }
+
+  const {
 
   const handleCheckboxChange = (field: keyof Cliente, checked: boolean) => {
     setCliente((prev) => (prev ? { ...prev, [field]: checked } : null))
@@ -501,16 +555,52 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 CEP
               </label>
-              <input
-                type="text"
-                value={formatCep(cliente.cep || "")}
-                onChange={(e) => handleCepChange(e.target.value)}
-                onBlur={(e) => handleCepBlur(e.target.value)}
-                placeholder="00.000-000"
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-              />
-              {cepLoading && <p className="text-xs text-blue-600 mt-1">Buscando endereço...</p>}
-              {cepError && <p className="text-xs text-red-600 mt-1">{cepError}</p>}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={formatCep(cliente.cep || "")}
+                  onChange={(e) => handleChange("cep", e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), handleConsultarCep())
+                  }
+                  placeholder="00.000-000"
+                  className="flex-1 min-w-0 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={handleConsultarCep}
+                  disabled={cepConsulting}
+                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-950/80 border border-amber-200 dark:border-amber-800 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {cepConsulting ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Search size={14} />
+                  )}
+                  <span className="hidden sm:inline">Consultar</span>
+                </button>
+              </div>
+              {cepConsulted && !cepData && (
+                <div className="mt-2 rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-3 flex items-start gap-2">
+                  <AlertCircle size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    CEP {formatCep(cliente.cep || "")} não encontrado. Preencha os dados manualmente.
+                  </p>
+                </div>
+              )}
+              {cepData && (
+                <div className="mt-2 rounded-lg border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/30 p-3 flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-medium text-emerald-800 dark:text-emerald-300">
+                      {cepData.logradouro}, {cepData.bairro} - {cepData.localidade}/{cepData.uf}
+                    </p>
+                    <p className="text-emerald-600 dark:text-emerald-400 text-xs mt-0.5">
+                      Endereço preenchido automaticamente
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2 md:col-span-2">

@@ -16,86 +16,77 @@ export interface CepData {
   erro?: boolean
 }
 
-export function useCepAutocomplete<
-  T extends Record<string, any>,
-  K extends string
->(
-  form: T,
-  setField: (field: K, value: string) => void
-) {
-  const setFieldAny = setField as (field: string, value: string) => void
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchCep = useCallback(
-    async (cep: string) => {
-      const cleanCep = cep.replace(/\D/g, "")
-      if (cleanCep.length !== 8) return
-
-      setLoading(true)
-      setError(null)
-
-      try {
-        const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
-        if (!res.ok) throw new Error("Erro na consulta")
-
-        const data: CepData = await res.json()
-
-        if (data.erro) {
-          setError("CEP não encontrado")
-          return
-        }
-
-        setFieldAny("endereco", data.logradouro || "")
-        setFieldAny("bairro", data.bairro || "")
-        setFieldAny("cidade", data.localidade || "")
-        setFieldAny("uf", data.uf || "")
-        if (data.complemento) {
-          setFieldAny("complemento", data.complemento)
-        }
-      } catch {
-        setError("Erro ao consultar CEP")
-      } finally {
-        setLoading(false)
-      }
-    },
-    [setField]
-  )
-
-  const handleCepChange = useCallback(
-    (value: string) => {
-      setFieldAny("cep", value)
-      const cleanCep = value.replace(/\D/g, "")
-      if (cleanCep.length === 8) {
-        fetchCep(cleanCep)
-      }
-    },
-    [setFieldAny, fetchCep]
-  )
-
-  const handleCepBlur = useCallback(
-    (value: string) => {
-      const cleanCep = value.replace(/\D/g, "")
-      if (cleanCep.length === 8) {
-        fetchCep(cleanCep)
-      }
-    },
-    [fetchCep]
-  )
-
-  return {
-    loading,
-    error,
-    handleCepChange,
-    handleCepBlur,
-  }
+export interface UseCepReturn {
+  formatCep: (value: string) => string
+  cepConsulting: boolean
+  cepConsulted: boolean
+  cepError: string | null
+  cepData: CepData | null
+  consultarCep: (cep: string) => Promise<void>
+  limparConsulta: () => void
 }
 
-export function formatCep(value: string): string {
-  const clean = value.replace(/\D/g, "")
-  if (clean.length <= 5) return clean
-  if (clean.length === 8) {
-    return `${clean.slice(0, 2)}.${clean.slice(2, 5)}-${clean.slice(5, 8)}`
+export function useCepAutocomplete(): UseCepReturn {
+  const [cepConsulting, setCepConsulting] = useState(false)
+  const [cepConsulted, setCepConsulted] = useState(false)
+  const [cepError, setCepError] = useState<string | null>(null)
+  const [cepData, setCepData] = useState<CepData | null>(null)
+
+  const consultarCep = useCallback(async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, "")
+    if (cleanCep.length !== 8) {
+      return
+    }
+
+    setCepConsulting(true)
+    setCepError(null)
+    setCepData(null)
+    setCepConsulted(false)
+
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+      if (!res.ok) throw new Error("Erro na consulta")
+
+      const data: CepData = await res.json()
+
+      if (data.erro) {
+        setCepError("CEP não encontrado")
+        setCepConsulted(true)
+        return
+      }
+
+      setCepData(data)
+      setCepConsulted(true)
+    } catch {
+      setCepError("Erro ao consultar CEP")
+      setCepConsulted(true)
+    } finally {
+      setCepConsulting(false)
+    }
+  }, [])
+
+  const limparConsulta = useCallback(() => {
+    setCepData(null)
+    setCepConsulted(false)
+    setCepError(null)
+  }, [])
+
+  function formatCep(value: string): string {
+    const clean = value.replace(/\D/g, "")
+    if (clean.length <= 5) return clean
+    if (clean.length === 8) {
+      return `${clean.slice(0, 2)}.${clean.slice(2, 5)}-${clean.slice(5, 8)}`
+    }
+    return clean
   }
-  return clean
+
+  return {
+    formatCep,
+    cepConsulting,
+    cepConsulted,
+    cepError,
+    cepData,
+    consultarCep,
+    limparConsulta,
+  }
 }

@@ -125,8 +125,15 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
     }
   }
 
-  const { loading: cepLoading, error: cepError, handleCepChange, handleCepBlur } =
-    useCepAutocomplete(formRef, setField)
+  const {
+    formatCep,
+    cepConsulting,
+    cepConsulted,
+    cepError,
+    cepData,
+    consultarCep,
+    limparConsulta: limparConsultaCep,
+  } = useCepAutocomplete()
 
   const [consulting, setConsulting] = useState(false)
   const [consulted, setConsulted] = useState(false)
@@ -135,6 +142,10 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
   const [cpfConsulting, setCpfConsulting] = useState(false)
   const [cpfConsulted, setCpfConsulted] = useState(false)
   const [cpfApiData, setCpfApiData] = useState<ConsultaCpfData | null>(null)
+
+  const [cepConsulting, setCepConsulting] = useState(false)
+  const [cepConsulted, setCepConsulted] = useState(false)
+  const [cepData, setCepData] = useState<any | null>(null)
 
   const { data: estados } = useQuery<{ id: number; uf: string }[]>({
     queryKey: ["crm-estados"],
@@ -171,6 +182,9 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
     setCep("")
     setApiData(null)
     setConsulted(false)
+    setCpfApiData(null)
+    setCpfConsulted(false)
+    limparConsultaCep()
     setCpfApiData(null)
     setCpfConsulted(false)
   }
@@ -217,8 +231,45 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
       toast.success("Dados preenchidos automaticamente")
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erro na consulta")
+} finally {
+      setCpfConsulting(false)
+    }
+  }
+
+  async function handleConsultarCep() {
+    const digits = cep.replace(/\D/g, "")
+    if (digits.length !== 8) {
+      toast.error("CEP deve ter 8 dígitos")
+      return
+    }
+    setCepConsulting(true)
+    setCepData(null)
+    setCepConsulted(false)
+    try {
+      const res = await fetch(`/api/crm/consulta-cep?cep=${digits}`)
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Erro na consulta")
+      }
+      const result = await res.json()
+      const api = result.apiData
+      if (!api) {
+        setCepConsulted(true)
+        toast.error("CEP não encontrado")
+        return
+      }
+      setCepData(api)
+      setCepConsulted(true)
+      setEndereco(api.logradouro || "")
+      setBairro(api.bairro || "")
+      setCidade(api.localidade || "")
+      setUf(api.uf || "")
+      setCep(formatCep(digits))
+      toast.success("Endereço preenchido automaticamente")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao consultar CEP")
     } finally {
-      setConsulting(false)
+      setCepConsulting(false)
     }
   }
 
@@ -621,16 +672,52 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   CEP
                 </label>
-                <input
-                  type="text"
-                  value={formatCep(cep)}
-                  onChange={(e) => handleCepChange(e.target.value)}
-                  onBlur={(e) => handleCepBlur(e.target.value)}
-                  placeholder="00.000-000"
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                />
-                {cepLoading && <p className="text-xs text-blue-600 mt-1">Buscando endereço...</p>}
-                {cepError && <p className="text-xs text-red-600 mt-1">{cepError}</p>}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={formatCep(cep)}
+                    onChange={(e) => setCep(e.target.value)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && (e.preventDefault(), handleConsultarCep())
+                    }
+                    placeholder="00.000-000"
+                    className="flex-1 min-w-0 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleConsultarCep}
+                    disabled={cepConsulting}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-950/80 border border-amber-200 dark:border-amber-800 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {cepConsulting ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Search size={14} />
+                    )}
+                    <span className="hidden sm:inline">Consultar</span>
+                  </button>
+                </div>
+                {cepConsulted && !cepData && (
+                  <div className="mt-2 rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-3 flex items-start gap-2">
+                    <AlertCircle size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                      CEP {formatCep(cep)} não encontrado. Preencha os dados manualmente.
+                    </p>
+                  </div>
+                )}
+                {cepData && (
+                  <div className="mt-2 rounded-lg border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/30 p-3 flex items-start gap-2">
+                    <Check size={16} className="text-emerald-500 mt-0.5 shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium text-emerald-800 dark:text-emerald-300">
+                        {cepData.logradouro}, {cepData.bairro} - {cepData.localidade}/{cepData.uf}
+                      </p>
+                      <p className="text-emerald-600 dark:text-emerald-400 text-xs mt-0.5">
+                        Endereço preenchido automaticamente
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
