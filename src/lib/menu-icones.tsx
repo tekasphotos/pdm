@@ -190,6 +190,8 @@ const URL_ICONES: [string, LucideIcon][] = [
   ["/documentos/romaneios", Truck],
   ["/documentos", FileText],
   ["/ferramentas/consulta-cnpj", Search],
+  ["/ferramentas/consulta-cep", MapPin],
+  ["/ferramentas/consulta-cpf", User],
   ["/ferramentas/nfe-cte", FileText],
   ["/ferramentas/regra-de-tres", Calculator],
   ["/ferramentas/conversores", Calculator],

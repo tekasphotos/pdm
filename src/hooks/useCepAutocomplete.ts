@@ -77,6 +77,7 @@ export function useCepAutocomplete(
       if (form && setField) {
         setField("cep", formatCep(cleanCep))
         setField("endereco", data.logradouro || "")
+        setField("complemento", data.complemento || "")
         setField("bairro", data.bairro || "")
         setField("cidade", data.localidade || "")
         setField("uf", data.uf || "")

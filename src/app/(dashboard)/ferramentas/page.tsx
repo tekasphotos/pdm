@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Send, Calculator, Wrench, Repeat, Search, FileText } from "lucide-react"
+import { Send, Calculator, Wrench, Repeat, Search, FileText, MapPin, User } from "lucide-react"
 import { PageInfoButton } from "@/components/ui/page-info-button"
 
 const ferramentas = [
@@ -8,6 +8,18 @@ const ferramentas = [
     label: "Consulta CNPJ",
     desc: "Consultar dados de CNPJ na Receita Federal, comparar com registros locais e sincronizar",
     icon: Search,
+  },
+  {
+    href: "/ferramentas/consulta-cep",
+    label: "Consulta CEP",
+    desc: "Consultar endereço por CEP (ViaCEP), comparar com registros locais e sincronizar",
+    icon: MapPin,
+  },
+  {
+    href: "/ferramentas/consulta-cpf",
+    label: "Consulta CPF",
+    desc: "Consultar dados de CPF, comparar com registros locais e sincronizar",
+    icon: User,
   },
   {
     href: "/ferramentas/nfe-cte",
