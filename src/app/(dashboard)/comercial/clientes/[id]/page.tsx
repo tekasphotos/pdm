@@ -268,12 +268,6 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
     limparConsulta: limparConsultaCep,
   } = useCepAutocomplete()
 
-  // function formatCep removed - now from hook
-    const d = v.replace(/\D/g, "")
-    if (d.length !== 8) return v
-    return `${d.slice(0, 2)}.${d.slice(2, 5)}-${d.slice(5, 8)}`
-  }
-
   async function handleConsultarCep() {
     const digits = (cliente?.cep || "").replace(/\D/g, "")
     if (digits.length !== 8) {
