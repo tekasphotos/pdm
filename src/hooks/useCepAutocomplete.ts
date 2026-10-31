@@ -16,6 +16,15 @@ export interface CepData {
   erro?: boolean
 }
 
+export function formatCep(value: string): string {
+  const clean = value.replace(/\D/g, "")
+  if (clean.length <= 5) return clean
+  if (clean.length === 8) {
+    return `${clean.slice(0, 2)}.${clean.slice(2, 5)}-${clean.slice(5, 8)}`
+  }
+  return clean
+}
+
 export interface UseCepReturn {
   formatCep: (value: string) => string
   cepConsulting: boolean
@@ -70,15 +79,6 @@ export function useCepAutocomplete(): UseCepReturn {
     setCepConsulted(false)
     setCepError(null)
   }, [])
-
-  function formatCep(value: string): string {
-    const clean = value.replace(/\D/g, "")
-    if (clean.length <= 5) return clean
-    if (clean.length === 8) {
-      return `${clean.slice(0, 2)}.${clean.slice(2, 5)}-${clean.slice(5, 8)}`
-    }
-    return clean
-  }
 
   return {
     formatCep,
