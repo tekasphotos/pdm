@@ -154,7 +154,8 @@ describe("NovaPessoaPage", () => {
 
     const textboxes = screen.getAllByRole("textbox")
     fireEvent.change(textboxes[2], { target: { value: "12.345.678/0001-90" } })
-    fireEvent.click(screen.getByRole("button", { name: "Consultar" }))
+    const consultarButtons = screen.getAllByRole("button", { name: "Consultar" })
+    fireEvent.click(consultarButtons[0])
 
     await waitFor(() => {
       expect(screen.getByDisplayValue("Tecelagem Alpha Ltda")).toBeInTheDocument()
@@ -177,7 +178,8 @@ describe("NovaPessoaPage", () => {
 
     const textboxes = screen.getAllByRole("textbox")
     fireEvent.change(textboxes[2], { target: { value: "00.000.000/0000-00" } })
-    fireEvent.click(screen.getByRole("button", { name: "Consultar" }))
+    const consultarButtons = screen.getAllByRole("button", { name: "Consultar" })
+    fireEvent.click(consultarButtons[0])
 
     await waitFor(() =>
       expect(screen.getByText(/não encontrado na Receita Federal/)).toBeInTheDocument()

@@ -1,5 +1,11 @@
 allowBuilds:
   core-js: set this to true or false
+  core-js@3.51.0: true
   esbuild: set this to true or false
+  esbuild@0.18.20: true
+  esbuild@0.25.12: true
+  esbuild@0.28.2: true
   tesseract.js: set this to true or false
+  tesseract.js@7.0.0: true
   unrs-resolver: set this to true or false
+  unrs-resolver@1.12.2: true

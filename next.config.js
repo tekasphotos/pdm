@@ -6,6 +6,7 @@ const nextConfig = {
     ],
   },
   serverExternalPackages: ["bcryptjs"],
+  transpilePackages: ["@excalidraw/excalidraw"],
 }
 
 module.exports = nextConfig

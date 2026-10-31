@@ -258,19 +258,19 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
     setCliente((prev) => (prev ? { ...prev, [field]: value } : null))
   }
 
-  const [cepConsulting, setCepConsulting] = useState(false)
-  const [cepConsulted, setCepConsulted] = useState(false)
-  const [cepData, setCepData] = useState<any | null>(null)
+  function setCepField(field: string, value: string) {
+    setCliente((prev) => (prev ? { ...prev, [field]: value } : null))
+  }
 
   const {
     formatCep,
-    cepConsulting: cepAutoConsulting,
-    cepConsulted: cepAutoConsulted,
+    cepConsulting,
+    cepConsulted,
     cepError,
-    cepData: cepAutoData,
+    cepData,
     consultarCep,
     limparConsulta: limparConsultaCep,
-  } = useCepAutocomplete()
+  } = useCepAutocomplete(cliente || {}, setCepField)
 
   async function handleConsultarCep() {
     const digits = (cliente?.cep || "").replace(/\D/g, "")
@@ -278,30 +278,11 @@ export default function EditarClientePage({ params }: { params: Promise<{ id: st
       toast.error("CEP deve ter 8 dígitos")
       return
     }
-    setCepConsulting(true)
-    setCepConsulted(false)
-    setCepData(null)
     try {
-      const res = await fetch(`/api/crm/consulta-cep?cep=${digits}`)
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || "Erro na consulta")
-      }
-      const result = await res.json()
-      const api = result.apiData
-      if (!api) {
-        setCepConsulted(true)
-        toast.error("CEP não encontrado")
-        return
-      }
-      setCepData(api)
-      setCepConsulted(true)
-      setCliente((prev) => (prev ? { ...prev, cep: formatCep(digits), endereco: api.logradouro || prev.endereco, bairro: api.bairro || prev.bairro, cidade: api.localidade || prev.cidade, uf: api.uf || prev.uf } : null))
+      await consultarCep(digits)
       toast.success("Endereço preenchido automaticamente")
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erro ao consultar CEP")
-    } finally {
-      setCepConsulting(false)
     }
   }
 

@@ -133,7 +133,7 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
     cepData,
     consultarCep,
     limparConsulta: limparConsultaCep,
-  } = useCepAutocomplete()
+  } = useCepAutocomplete(formRef, setField)
 
   const [consulting, setConsulting] = useState(false)
   const [consulted, setConsulted] = useState(false)
@@ -238,34 +238,11 @@ export function QuickCreatePessoa({ onCreated, open: openProp, onOpenChange }: P
       toast.error("CEP deve ter 8 dígitos")
       return
     }
-    setCepConsulting(true)
-    setCepData(null)
-    setCepConsulted(false)
     try {
-      const res = await fetch(`/api/crm/consulta-cep?cep=${digits}`)
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || "Erro na consulta")
-      }
-      const result = await res.json()
-      const api = result.apiData
-      if (!api) {
-        setCepConsulted(true)
-        toast.error("CEP não encontrado")
-        return
-      }
-      setCepData(api)
-      setCepConsulted(true)
-      setEndereco(api.logradouro || "")
-      setBairro(api.bairro || "")
-      setCidade(api.localidade || "")
-      setUf(api.uf || "")
-      setCep(formatCep(digits))
+      await consultarCep(digits)
       toast.success("Endereço preenchido automaticamente")
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erro ao consultar CEP")
-    } finally {
-      setCepConsulting(false)
     }
   }
 

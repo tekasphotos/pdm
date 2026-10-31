@@ -33,9 +33,16 @@ export interface UseCepReturn {
   cepData: CepData | null
   consultarCep: (cep: string) => Promise<void>
   limparConsulta: () => void
+  loading: boolean
+  error: string | null
+  handleCepChange: (value: string) => void
+  handleCepBlur: (value: string) => void
 }
 
-export function useCepAutocomplete(): UseCepReturn {
+export function useCepAutocomplete(
+  form?: Record<string, unknown>,
+  setField?: (field: string, value: string) => void
+): UseCepReturn {
   const [cepConsulting, setCepConsulting] = useState(false)
   const [cepConsulted, setCepConsulted] = useState(false)
   const [cepError, setCepError] = useState<string | null>(null)
@@ -66,19 +73,40 @@ export function useCepAutocomplete(): UseCepReturn {
 
       setCepData(data)
       setCepConsulted(true)
+
+      if (form && setField) {
+        setField("cep", formatCep(cleanCep))
+        setField("endereco", data.logradouro || "")
+        setField("bairro", data.bairro || "")
+        setField("cidade", data.localidade || "")
+        setField("uf", data.uf || "")
+      }
     } catch {
       setCepError("Erro ao consultar CEP")
       setCepConsulted(true)
     } finally {
       setCepConsulting(false)
     }
-  }, [])
+  }, [form, setField])
 
   const limparConsulta = useCallback(() => {
     setCepData(null)
     setCepConsulted(false)
     setCepError(null)
   }, [])
+
+  const handleCepChange = useCallback((value: string) => {
+    if (form && setField) {
+      setField("cep", value)
+    }
+  }, [form, setField])
+
+  const handleCepBlur = useCallback((value: string) => {
+    const cleanCep = value.replace(/\D/g, "")
+    if (cleanCep.length === 8) {
+      consultarCep(cleanCep)
+    }
+  }, [consultarCep])
 
   return {
     formatCep,
@@ -88,5 +116,9 @@ export function useCepAutocomplete(): UseCepReturn {
     cepData,
     consultarCep,
     limparConsulta,
+    loading: cepConsulting,
+    error: cepError,
+    handleCepChange,
+    handleCepBlur,
   }
 }
