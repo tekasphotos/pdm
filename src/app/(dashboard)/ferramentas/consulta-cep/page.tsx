@@ -620,7 +620,7 @@ export default function ConsultaCepPage() {
                 </p>
                 <div className="flex items-center justify-center gap-3 mt-4">
                   <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
-                    <DialogTrigger asChild>
+                    <DialogTrigger>
                       <button
                         onClick={() => openCreateModal("pessoa")}
                         disabled={creating !== null}
@@ -696,7 +696,7 @@ export default function ConsultaCepPage() {
                     </DialogContent>
                   </Dialog>
                   <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
-                    <DialogTrigger asChild>
+                    <DialogTrigger>
                       <button
                         onClick={() => openCreateModal("cliente")}
                         disabled={creating !== null}
