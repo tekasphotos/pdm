@@ -90,19 +90,49 @@ export default function ConsultaCepPage() {
   const [createType, setCreateType] = useState<"pessoa" | "cliente" | null>(null)
   const [createNome, setCreateNome] = useState("")
   const [createCpf, setCreateCpf] = useState("")
+  const [createCnpj, setCreateCnpj] = useState("")
   const [createLoading, setCreateLoading] = useState(false)
 
   function openCreateModal(type: "pessoa" | "cliente") {
     setCreateType(type)
     setCreateNome("")
     setCreateCpf("")
+    setCreateCnpj("")
     setCreateModalOpen(true)
+  }
+
+  async function fetchCnpjData() {
+    const digits = createCnpj.replace(/\D/g, "")
+    if (digits.length !== 14) {
+      toast.error("CNPJ deve ter 14 dígitos")
+      return
+    }
+    try {
+      const res = await fetch(`/api/crm/consulta-cnpj?cnpj=${digits}`)
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Erro na consulta")
+      }
+      const data = await res.json()
+      if (data.apiData?.razao_social || data.apiData?.nome_fantasia) {
+        setCreateNome(data.apiData.nome_fantasia || data.apiData.razao_social)
+        toast.success("Nome preenchido automaticamente via CNPJ")
+      } else {
+        toast.error("Nome não encontrado para este CNPJ")
+      }
+    } catch (err: any) {
+      toast.error(err.message)
+    }
   }
 
   async function handleCreateConfirm() {
     if (!result?.apiData || !createType) return
     if (!createNome.trim()) {
       toast.error("Nome é obrigatório")
+      return
+    }
+    if (createType === "cliente" && !createCnpj.trim()) {
+      toast.error("CNPJ é obrigatório para Cliente")
       return
     }
     setCreateLoading(true)
@@ -134,6 +164,7 @@ export default function ConsultaCepPage() {
       } else {
         const body = {
           nome: createNome,
+          cnpj: createCnpj.replace(/\D/g, ""),
           cpf: createCpf.replace(/\D/g, "") || null,
           endereco: [api.logradouro, api.numero, api.bairro, api.complemento]
             .filter(Boolean)
@@ -726,14 +757,42 @@ export default function ConsultaCepPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="create-cpf-cliente">CPF/CNPJ (opcional)</Label>
+                          <Label htmlFor="create-cnpj-cliente">CNPJ *</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="create-cnpj-cliente"
+                              value={createCnpj}
+                              onChange={(e) => setCreateCnpj(e.target.value)}
+                              placeholder="00.000.000/0001-00"
+                              maxLength={18}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={fetchCnpjData}
+                              disabled={!createCnpj.replace(/\D/g, "").length || createLoading}
+                              className="h-10"
+                            >
+                              {createLoading ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <Search size={14} />
+                              )}
+                              Buscar nome
+                            </Button>
+                          </div>
+                          <p className="text-xs text-slate-500">CNPJ é obrigatório. Se preencher, buscamos o nome automaticamente</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="create-cpf-cliente">CPF (opcional)</Label>
                           <div className="flex gap-2">
                             <Input
                               id="create-cpf-cliente"
                               value={createCpf}
                               onChange={(e) => setCreateCpf(e.target.value)}
-                              placeholder="000.000.000-00 ou 00.000.000/0001-00"
-                              maxLength={18}
+                              placeholder="000.000.000-00"
+                              maxLength={14}
                             />
                             <Button
                               type="button"
