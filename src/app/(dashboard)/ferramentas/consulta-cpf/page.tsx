@@ -18,7 +18,8 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-function formatCpf(v: string) {
+function formatCpf(v: string | undefined | null) {
+  if (!v) return "—"
   const d = v.replace(/\D/g, "")
   if (d.length !== 11) return v
   return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`
