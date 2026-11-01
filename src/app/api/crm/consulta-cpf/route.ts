@@ -42,6 +42,46 @@ function validarCpf(cpf: string): boolean {
   return true
 }
 
+async function buscarCpfPublico(cpf: string) {
+  // Tenta API pública gratuita como fallback
+  const apis = [
+    `https://api.cpfcnpj.com.br/consulta/cpf/${cpf}`,
+    `https://brasilapi.com.br/api/cpf/v1/${cpf}`,
+  ]
+  
+  for (const url of apis) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
+      if (res.ok) {
+        const data = await res.json()
+        // Normaliza resposta para formato esperado
+        if (data.nome || data.name) {
+          return {
+            nome: data.nome || data.name,
+            cpf: data.cpf || cpf,
+            situacao_cadastral: data.situacao_cadastral || data.situacao || "Regular",
+            data_nascimento: data.data_nascimento || data.nascimento,
+            nome_mae: data.nome_mae || data.mae,
+            sexo: data.sexo,
+            endereco: data.endereco ? {
+              logradouro: data.endereco.logradouro,
+              numero: data.endereco.numero,
+              complemento: data.endereco.complemento,
+              bairro: data.endereco.bairro,
+              cidade: data.endereco.cidade,
+              uf: data.endereco.uf,
+              cep: data.endereco.cep,
+            } : undefined,
+          }
+        }
+      }
+    } catch (e) {
+      continue
+    }
+  }
+  return null
+}
+
 export async function GET(req: NextRequest) {
   try {
     const auth = await requireAuth()
@@ -56,25 +96,30 @@ export async function GET(req: NextRequest) {
 
     // Busca configuração da integração
     const cfg = await buscarConfigIntegracao("consulta_cpf")
-    if (!cfg) {
-      return NextResponse.json({ error: "Integração 'consulta_cpf' não configurada" }, { status: 503 })
-    }
 
     let apiData = null
-    try {
-      const res = await fetch(`${cfg.baseUrl}/consulta?cpf=${cpf}`, {
-        headers: montarHeaders(cfg),
-        signal: AbortSignal.timeout(10000),
-      })
-      if (res.ok) {
-        apiData = await res.json()
-        // Normaliza resposta
-        if (apiData.code === 404) {
-          return NextResponse.json({ apiData: null, crmPessoas: [] })
+
+    if (cfg) {
+      // Usa integração configurada
+      try {
+        const res = await fetch(`${cfg.baseUrl}/consulta?cpf=${cpf}`, {
+          headers: montarHeaders(cfg),
+          signal: AbortSignal.timeout(10000),
+        })
+        if (res.ok) {
+          apiData = await res.json()
+          if (apiData.code === 404) {
+            apiData = null
+          }
         }
+      } catch (err) {
+        console.error("[consulta-cpf] erro ao buscar API externa:", err)
       }
-    } catch (err) {
-      console.error("[consulta-cpf] erro ao buscar API externa:", err)
+    }
+
+    // Fallback para API pública se não tem integração ou falhou
+    if (!apiData) {
+      apiData = await buscarCpfPublico(cpf)
     }
 
     const crmResult = await db
