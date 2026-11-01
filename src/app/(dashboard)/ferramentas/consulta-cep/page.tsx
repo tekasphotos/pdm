@@ -92,12 +92,14 @@ export default function ConsultaCepPage() {
   const [createCpf, setCreateCpf] = useState("")
   const [createCnpj, setCreateCnpj] = useState("")
   const [createLoading, setCreateLoading] = useState(false)
+  const [createClienteTipo, setCreateClienteTipo] = useState<"PF" | "PJ">("PF")
 
   function openCreateModal(type: "pessoa" | "cliente") {
     setCreateType(type)
     setCreateNome("")
     setCreateCpf("")
     setCreateCnpj("")
+    setCreateClienteTipo("PF")
     setCreateModalOpen(true)
   }
 
@@ -131,9 +133,15 @@ export default function ConsultaCepPage() {
       toast.error("Nome é obrigatório")
       return
     }
-    if (createType === "cliente" && !createCnpj.trim()) {
-      toast.error("CNPJ é obrigatório para Cliente")
-      return
+    if (createType === "cliente") {
+      if (createClienteTipo === "PJ" && !createCnpj.trim()) {
+        toast.error("CNPJ é obrigatório para Pessoa Jurídica")
+        return
+      }
+      if (createClienteTipo === "PF" && !createCpf.trim()) {
+        toast.error("CPF é obrigatório para Pessoa Física")
+        return
+      }
     }
     setCreateLoading(true)
     try {
@@ -162,10 +170,14 @@ export default function ConsultaCepPage() {
         const refresh = await fetch(`/api/crm/consulta-cep?cep=${api.cep}`)
         if (refresh.ok) setResult(await refresh.json())
       } else {
+        const cnpjParaEnviar = createClienteTipo === "PF" 
+          ? createCpf.replace(/\D/g, "").padStart(14, "0").replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5")
+          : createCnpj.replace(/\D/g, "")
+        
         const body = {
           nome: createNome,
-          cnpj: createCnpj.replace(/\D/g, ""),
-          cpf: createCpf.replace(/\D/g, "") || null,
+          cnpj: cnpjParaEnviar,
+          cpf: createClienteTipo === "PF" ? createCpf.replace(/\D/g, "") : (createCpf.replace(/\D/g, "") || null),
           endereco: [api.logradouro, api.numero, api.bairro, api.complemento]
             .filter(Boolean)
             .join(", "),
@@ -757,61 +769,104 @@ export default function ConsultaCepPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="create-cnpj-cliente">CNPJ *</Label>
+                          <Label>Tipo de Pessoa *</Label>
                           <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setCreateClienteTipo("PF")}
+                              className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                                createClienteTipo === "PF"
+                                  ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300"
+                                  : "border-slate-200 dark:border-slate-700 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
+                              }`}
+                            >
+                              PF
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setCreateClienteTipo("PJ")}
+                              className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                                createClienteTipo === "PJ"
+                                  ? "border-cyan-500 bg-cyan-50 text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-300"
+                                  : "border-slate-200 dark:border-slate-700 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
+                              }`}
+                            >
+                              PJ
+                            </button>
+                          </div>
+                        </div>
+                        {createClienteTipo === "PF" ? (
+                          <div className="space-y-2">
+                            <Label htmlFor="create-cpf-cliente">CPF *</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                id="create-cpf-cliente"
+                                value={createCpf}
+                                onChange={(e) => setCreateCpf(e.target.value)}
+                                placeholder="000.000.000-00"
+                                maxLength={14}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={fetchCpfName}
+                                disabled={!createCpf.replace(/\D/g, "").length || createLoading}
+                                className="h-10"
+                              >
+                                {createLoading ? (
+                                  <Loader2 size={14} className="animate-spin" />
+                                ) : (
+                                  <Search size={14} />
+                                )}
+                                Buscar nome
+                              </Button>
+                            </div>
+                            <p className="text-xs text-slate-500">CPF é obrigatório para Pessoa Física. Se preencher, buscamos o nome automaticamente</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <Label htmlFor="create-cnpj-cliente">CNPJ *</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                id="create-cnpj-cliente"
+                                value={createCnpj}
+                                onChange={(e) => setCreateCnpj(e.target.value)}
+                                placeholder="00.000.000/0001-00"
+                                maxLength={18}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={fetchCnpjData}
+                                disabled={!createCnpj.replace(/\D/g, "").length || createLoading}
+                                className="h-10"
+                              >
+                                {createLoading ? (
+                                  <Loader2 size={14} className="animate-spin" />
+                                ) : (
+                                  <Search size={14} />
+                                )}
+                                Buscar nome
+                              </Button>
+                            </div>
+                            <p className="text-xs text-slate-500">CNPJ é obrigatório para Pessoa Jurídica. Se preencher, buscamos o nome automaticamente</p>
+                          </div>
+                        )}
+                        {createClienteTipo === "PF" && (
+                          <div className="space-y-2">
+                            <Label htmlFor="create-cnpj-opcional">CNPJ (opcional)</Label>
                             <Input
-                              id="create-cnpj-cliente"
+                              id="create-cnpj-opcional"
                               value={createCnpj}
                               onChange={(e) => setCreateCnpj(e.target.value)}
                               placeholder="00.000.000/0001-00"
                               maxLength={18}
                             />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={fetchCnpjData}
-                              disabled={!createCnpj.replace(/\D/g, "").length || createLoading}
-                              className="h-10"
-                            >
-                              {createLoading ? (
-                                <Loader2 size={14} className="animate-spin" />
-                              ) : (
-                                <Search size={14} />
-                              )}
-                              Buscar nome
-                            </Button>
+                            <p className="text-xs text-slate-500">Opcional. Se tiver CNPJ, informe aqui.</p>
                           </div>
-                          <p className="text-xs text-slate-500">CNPJ é obrigatório. Se preencher, buscamos o nome automaticamente</p>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="create-cpf-cliente">CPF (opcional)</Label>
-                          <div className="flex gap-2">
-                            <Input
-                              id="create-cpf-cliente"
-                              value={createCpf}
-                              onChange={(e) => setCreateCpf(e.target.value)}
-                              placeholder="000.000.000-00"
-                              maxLength={14}
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={fetchCpfName}
-                              disabled={!createCpf.replace(/\D/g, "").length || createLoading}
-                              className="h-10"
-                            >
-                              {createLoading ? (
-                                <Loader2 size={14} className="animate-spin" />
-                              ) : (
-                                <Search size={14} />
-                              )}
-                              Buscar nome
-                            </Button>
-                          </div>
-                          <p className="text-xs text-slate-500">Se preencher o CPF, buscamos o nome automaticamente</p>
-                        </div>
+                        )}
                       </div>
                       <div className="flex justify-end gap-2 pt-4 border-t">
                         <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
