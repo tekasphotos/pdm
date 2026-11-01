@@ -15,9 +15,22 @@ import {
   ExternalLink,
   PlusCircle,
   UserPlus,
+  User,
+  Loader2,
+  X,
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatCep } from "@/hooks/useCepAutocomplete"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 type FieldMap = {
   field: string
@@ -73,6 +86,103 @@ export default function ConsultaCepPage() {
   const [result, setResult] = useState<any>(null)
   const [syncing, setSyncing] = useState<string | null>(null)
   const [creating, setCreating] = useState<string | null>(null)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [createType, setCreateType] = useState<"pessoa" | "cliente" | null>(null)
+  const [createNome, setCreateNome] = useState("")
+  const [createCpf, setCreateCpf] = useState("")
+  const [createLoading, setCreateLoading] = useState(false)
+
+  function openCreateModal(type: "pessoa" | "cliente") {
+    setCreateType(type)
+    setCreateNome("")
+    setCreateCpf("")
+    setCreateModalOpen(true)
+  }
+
+  async function handleCreateConfirm() {
+    if (!result?.apiData || !createType) return
+    if (!createNome.trim()) {
+      toast.error("Nome é obrigatório")
+      return
+    }
+    setCreateLoading(true)
+    try {
+      const api = result.apiData
+      if (createType === "pessoa") {
+        const body = {
+          tipoPessoa: "PF",
+          nome: createNome,
+          cpf: createCpf.replace(/\D/g, "") || null,
+          endereco: api.logradouro || "",
+          numero: api.numero || "",
+          complemento: api.complemento || "",
+          bairro: api.bairro || "",
+          cidade: api.localidade || "",
+          uf: api.uf || "",
+          cep: api.cep || "",
+        }
+        const res = await fetch("/api/crm/pessoas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) throw new Error("Erro ao criar pessoa")
+        const nova = await res.json()
+        toast.success(`Pessoa CRM "${createNome}" criada com sucesso`)
+        const refresh = await fetch(`/api/crm/consulta-cep?cep=${api.cep}`)
+        if (refresh.ok) setResult(await refresh.json())
+      } else {
+        const body = {
+          nome: createNome,
+          cpf: createCpf.replace(/\D/g, "") || null,
+          endereco: [api.logradouro, api.numero, api.bairro, api.complemento]
+            .filter(Boolean)
+            .join(", "),
+          cidade: api.localidade || "",
+          uf: api.uf || "",
+        }
+        const res = await fetch("/api/clientes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) throw new Error("Erro ao criar cliente")
+        const novo = await res.json()
+        toast.success(`Cliente "${createNome}" criado com sucesso`)
+        const refresh = await fetch(`/api/crm/consulta-cep?cep=${api.cep}`)
+        if (refresh.ok) setResult(await refresh.json())
+      }
+      setCreateModalOpen(false)
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setCreateLoading(false)
+    }
+  }
+
+  async function fetchCpfName() {
+    const digits = createCpf.replace(/\D/g, "")
+    if (digits.length !== 11) {
+      toast.error("CPF deve ter 11 dígitos")
+      return
+    }
+    try {
+      const res = await fetch(`/api/crm/consulta-cpf?cpf=${digits}`)
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Erro na consulta")
+      }
+      const data = await res.json()
+      if (data.apiData?.nome) {
+        setCreateNome(data.apiData.nome)
+        toast.success("Nome preenchido automaticamente via CPF")
+      } else {
+        toast.error("Nome não encontrado para este CPF")
+      }
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -509,30 +619,158 @@ export default function ConsultaCepPage() {
                   Este CEP não está cadastrado. Deseja cadastrar?
                 </p>
                 <div className="flex items-center justify-center gap-3 mt-4">
-                  <button
-                    onClick={criarPessoa}
-                    disabled={creating !== null}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                  >
-                    {creating === "pessoa" ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                    ) : (
-                      <MapPin size={15} />
-                    )}
-                    {creating === "pessoa" ? "Criando..." : "Cadastrar como Pessoa CRM"}
-                  </button>
-                  <button
-                    onClick={criarCliente}
-                    disabled={creating !== null}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
-                  >
-                    {creating === "cliente" ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                    ) : (
-                      <UserPlus size={15} />
-                    )}
-                    {creating === "cliente" ? "Criando..." : "Cadastrar como Cliente"}
-                  </button>
+                  <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+                    <DialogTrigger asChild>
+                      <button
+                        onClick={() => openCreateModal("pessoa")}
+                        disabled={creating !== null}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                      >
+                        {creating === "pessoa" ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                        ) : (
+                          <MapPin size={15} />
+                        )}
+                        {creating === "pessoa" ? "Criando..." : "Cadastrar como Pessoa CRM"}
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Cadastrar Pessoa CRM</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="create-nome">Nome *</Label>
+                          <Input
+                            id="create-nome"
+                            value={createNome}
+                            onChange={(e) => setCreateNome(e.target.value)}
+                            placeholder="Digite o nome da pessoa"
+                            autoFocus
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="create-cpf">CPF (opcional)</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="create-cpf"
+                              value={createCpf}
+                              onChange={(e) => setCreateCpf(e.target.value)}
+                              placeholder="000.000.000-00"
+                              maxLength={14}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={fetchCpfName}
+                              disabled={!createCpf.replace(/\D/g, "").length || createLoading}
+                              className="h-10"
+                            >
+                              {createLoading ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <Search size={14} />
+                              )}
+                              Buscar nome
+                            </Button>
+                          </div>
+                          <p className="text-xs text-slate-500">Se preencher o CPF, buscamos o nome automaticamente</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2 pt-4 border-t">
+                        <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleCreateConfirm} disabled={createLoading}>
+                          {createLoading ? (
+                            <>
+                              <Loader2 size={14} className="animate-spin mr-2" />
+                              Criando...
+                            </>
+                          ) : (
+                            "Cadastrar"
+                          )}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+                    <DialogTrigger asChild>
+                      <button
+                        onClick={() => openCreateModal("cliente")}
+                        disabled={creating !== null}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                      >
+                        {creating === "cliente" ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                        ) : (
+                          <UserPlus size={15} />
+                        )}
+                        {creating === "cliente" ? "Criando..." : "Cadastrar como Cliente"}
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Cadastrar Cliente</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="create-nome-cliente">Nome *</Label>
+                          <Input
+                            id="create-nome-cliente"
+                            value={createNome}
+                            onChange={(e) => setCreateNome(e.target.value)}
+                            placeholder="Digite o nome do cliente"
+                            autoFocus
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="create-cpf-cliente">CPF/CNPJ (opcional)</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="create-cpf-cliente"
+                              value={createCpf}
+                              onChange={(e) => setCreateCpf(e.target.value)}
+                              placeholder="000.000.000-00 ou 00.000.000/0001-00"
+                              maxLength={18}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={fetchCpfName}
+                              disabled={!createCpf.replace(/\D/g, "").length || createLoading}
+                              className="h-10"
+                            >
+                              {createLoading ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <Search size={14} />
+                              )}
+                              Buscar nome
+                            </Button>
+                          </div>
+                          <p className="text-xs text-slate-500">Se preencher o CPF, buscamos o nome automaticamente</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2 pt-4 border-t">
+                        <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleCreateConfirm} disabled={createLoading}>
+                          {createLoading ? (
+                            <>
+                              <Loader2 size={14} className="animate-spin mr-2" />
+                              Criando...
+                            </>
+                          ) : (
+                            "Cadastrar"
+                          )}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             )}
