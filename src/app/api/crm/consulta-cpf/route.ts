@@ -100,17 +100,27 @@ export async function GET(req: NextRequest) {
     let apiData = null
 
     if (cfg) {
-      // Usa integração configurada
+      // Usa integração configurada (cpf-brasil.org)
       try {
-        const res = await fetch(`${cfg.baseUrl}/consulta?cpf=${cpf}`, {
+        const res = await fetch(`${cfg.baseUrl}/cpf/${cpf}`, {
           headers: montarHeaders(cfg),
           signal: AbortSignal.timeout(10000),
         })
         if (res.ok) {
-          apiData = await res.json()
-          if (apiData.code === 404) {
-            apiData = null
+          const json = await res.json()
+          // Normaliza resposta da cpf-brasil.org
+          if (json.success && json.data) {
+            apiData = {
+              cpf: json.data.CPF,
+              nome: json.data.NOME,
+              sexo: json.data.SEXO,
+              data_nascimento: json.data.NASC,
+              nome_mae: json.data.NOME_MAE,
+              situacao_cadastral: "Regular",
+            }
           }
+        } else if (res.status === 404) {
+          apiData = null
         }
       } catch (err) {
         console.error("[consulta-cpf] erro ao buscar API externa:", err)

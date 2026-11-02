@@ -1,10 +1,10 @@
--- Inserir integração de consulta CPF
+-- Inserir integração de consulta CPF (cpf-brasil.org)
 INSERT INTO integracoes (nome, base_url, tipo_auth, auth_config, ativo, created_at, updated_at)
 VALUES (
   'consulta_cpf',
-  'https://apicpf.com/api',
+  'https://api.cpf-brasil.org',
   'api_key',
-  '{"key": "ecba766f95da8ab8a2b84565f49cfd291cb6647e93062a88378a8b4585b64b14", "key_name": "X-API-KEY"}'::jsonb,
+  '{"key": "626d0fa350c05a13cb406364124f6843", "key_name": "X-API-Key"}'::jsonb,
   true,
   NOW(),
   NOW()
