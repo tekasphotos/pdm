@@ -2,7 +2,7 @@
 INSERT INTO integracoes (nome, base_url, tipo_auth, auth_config, ativo, created_at, updated_at)
 VALUES (
   'consulta_cpf',
-  'https://api.cpfcnpj.com.br',  -- ajuste se for outra URL base
+  'https://apicpf.com/api',
   'api_key',
   '{"key": "ecba766f95da8ab8a2b84565f49cfd291cb6647e93062a88378a8b4585b64b14", "key_name": "X-API-KEY"}'::jsonb,
   true,
